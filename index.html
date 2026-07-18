@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>🎬 Fmovie· Netflix-style with Search</title>
-    <!-- Font Awesome -->
+    <title>CineVault · Local Video Library</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
     <style>
         * {
@@ -57,7 +56,6 @@
             -webkit-background-clip: text;
             background-clip: text;
             color: transparent;
-            text-shadow: 0 0 40px rgba(245, 182, 66, 0.2);
             cursor: pointer;
             transition: transform 0.2s ease;
         }
@@ -92,7 +90,7 @@
             flex-wrap: wrap;
         }
 
-        /* ===== SEARCH BAR ===== */
+        /* ===== SEARCH ===== */
         .search-container {
             position: relative;
             display: flex;
@@ -146,7 +144,7 @@
             color: #fff;
         }
 
-        .search-container .search-toggle {
+        .search-toggle {
             background: none;
             border: none;
             color: #b3b3b3;
@@ -156,7 +154,7 @@
             padding: 0.2rem;
         }
 
-        .search-container .search-toggle:hover {
+        .search-toggle:hover {
             color: #fff;
         }
 
@@ -463,15 +461,65 @@
             overflow: hidden;
         }
 
+        .movie-card .thumbnail video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            background: #0a0a0a;
+        }
+
         .movie-card .thumbnail img {
             width: 100%;
             height: 100%;
             object-fit: cover;
-            transition: transform 0.4s ease;
+            display: block;
+            background: #0a0a0a;
         }
 
-        .movie-card:hover .thumbnail img {
-            transform: scale(1.02);
+        .movie-card .thumbnail .poster-fallback {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #1a1a2e, #0a0e14);
+            color: #4a4a5a;
+            font-size: 2.5rem;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .movie-card .thumbnail .poster-fallback i {
+            font-size: 3rem;
+            color: #f5b642;
+            opacity: 0.4;
+        }
+
+        .movie-card .thumbnail .poster-fallback span {
+            font-size: 0.8rem;
+            opacity: 0.5;
+        }
+
+        .movie-card .badge-top {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(4px);
+            padding: 0.15rem 0.7rem;
+            border-radius: 20px;
+            font-size: 0.6rem;
+            color: #b3b3b3;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            z-index: 2;
+            font-weight: 500;
+        }
+
+        .movie-card .badge-top i {
+            color: #f5b642;
+            font-size: 0.55rem;
+            margin-right: 4px;
         }
 
         .movie-card .card-hover {
@@ -504,6 +552,7 @@
             cursor: pointer;
             transition: all 0.2s ease;
             margin-bottom: 0.5rem;
+            pointer-events: auto;
         }
 
         .movie-card .card-hover .play-btn:hover {
@@ -539,28 +588,7 @@
             font-size: 0.6rem;
         }
 
-        .movie-card .badge-top {
-            position: absolute;
-            top: 8px;
-            right: 8px;
-            background: rgba(0, 0, 0, 0.7);
-            backdrop-filter: blur(4px);
-            padding: 0.15rem 0.7rem;
-            border-radius: 20px;
-            font-size: 0.6rem;
-            color: #b3b3b3;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            z-index: 2;
-            font-weight: 500;
-        }
-
-        .movie-card .badge-top i {
-            color: #f5b642;
-            font-size: 0.55rem;
-            margin-right: 4px;
-        }
-
-        /* ===== SEARCH RESULTS ROW ===== */
+        /* ===== SEARCH RESULTS ===== */
         .search-results-row {
             display: none;
         }
@@ -582,6 +610,94 @@
             opacity: 0.3;
             margin-bottom: 1rem;
             display: block;
+        }
+
+        .row.hidden {
+            display: none;
+        }
+
+        /* ===== VIDEO PLAYER MODAL ===== */
+        .video-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            background: rgba(0, 0, 0, 0.92);
+            backdrop-filter: blur(12px);
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .video-modal.active {
+            display: flex;
+        }
+
+        .video-modal-content {
+            position: relative;
+            width: 100%;
+            max-width: 1100px;
+            background: #0a0a0a;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 40px 80px rgba(0, 0, 0, 0.9);
+        }
+
+        .video-modal-close {
+            position: absolute;
+            top: 16px;
+            right: 20px;
+            z-index: 10;
+            background: rgba(0, 0, 0, 0.7);
+            border: none;
+            color: #fff;
+            font-size: 1.8rem;
+            cursor: pointer;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            backdrop-filter: blur(4px);
+        }
+
+        .video-modal-close:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: scale(1.05);
+        }
+
+        .video-modal video {
+            width: 100%;
+            display: block;
+            background: #000;
+            max-height: 85vh;
+        }
+
+        .video-modal-info {
+            padding: 1.2rem 2rem 1.8rem;
+            background: linear-gradient(to top, #0a0a0a 0%, #141414 100%);
+        }
+
+        .video-modal-info h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.3rem;
+            color: #e5e5e5;
+        }
+
+        .video-modal-info .sub {
+            color: #8a8a8a;
+            font-size: 0.9rem;
+            display: flex;
+            gap: 1.2rem;
+            flex-wrap: wrap;
+        }
+
+        .video-modal-info .sub i {
+            color: #f5b642;
+            margin-right: 4px;
         }
 
         /* ===== RESPONSIVE ===== */
@@ -617,6 +733,12 @@
             .row-title {
                 font-size: 1.2rem;
             }
+            .video-modal {
+                padding: 0.5rem;
+            }
+            .video-modal-info {
+                padding: 1rem 1.2rem 1.4rem;
+            }
         }
 
         @media (max-width: 480px) {
@@ -646,6 +768,13 @@
             .nav-right {
                 gap: 0.8rem;
             }
+            .video-modal-close {
+                top: 8px;
+                right: 12px;
+                width: 36px;
+                height: 36px;
+                font-size: 1.3rem;
+            }
         }
 
         ::-webkit-scrollbar {
@@ -674,11 +803,6 @@
             opacity: 0.3;
             margin-bottom: 1rem;
             display: block;
-        }
-
-        /* row hidden state */
-        .row.hidden {
-            display: none;
         }
     </style>
 </head>
@@ -727,15 +851,29 @@
                 <span><i class="fas fa-folder"></i> <span id="heroFolder">Neon Dreamscape</span></span>
             </div>
             <div class="hero-buttons">
-                <button class="btn-primary"><i class="fas fa-play"></i> Play</button>
+                <button class="btn-primary" id="heroPlayBtn"><i class="fas fa-play"></i> Play</button>
                 <button class="btn-secondary"><i class="fas fa-plus"></i> My List</button>
             </div>
         </div>
     </section>
 
     <!-- ===== ROWS ===== -->
-    <div class="rows-container" id="rowsContainer">
-        <!-- rows injected by JS -->
+    <div class="rows-container" id="rowsContainer"></div>
+
+    <!-- ===== VIDEO MODAL ===== -->
+    <div class="video-modal" id="videoModal">
+        <div class="video-modal-content">
+            <button class="video-modal-close" id="videoModalClose"><i class="fas fa-times"></i></button>
+            <video id="modalVideo" controls autoplay playsinline></video>
+            <div class="video-modal-info">
+                <h2 id="modalTitle">Movie Title</h2>
+                <div class="sub">
+                    <span><i class="fas fa-folder"></i> <span id="modalFolder">Folder</span></span>
+                    <span><i class="fas fa-file-video"></i> <span id="modalFile">file.mp4</span></span>
+                    <span><i class="fas fa-video"></i> <span id="modalQuality">HD</span></span>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -743,12 +881,13 @@
             "use strict";
 
             // ================================================================
-            // 1. VIRTUAL FILE SYSTEM – local folders with metadata
+            // 1. VIRTUAL FILE SYSTEM – map folder → video metadata
+            //    Each entry must match a subfolder inside your `videos/` directory.
+            //    The `video` field is the filename inside that folder.
             // ================================================================
             const virtualFileSystem = {
                 'Neon Dreamscape': {
                     desc: 'A cyberpunk thriller where memories are traded on the black market.',
-                    poster: 'neon',
                     video: 'neon_dreamscape.mp4',
                     quality: '4K · HDR',
                     year: '2024',
@@ -756,7 +895,6 @@
                 },
                 'Aurora Echo': {
                     desc: 'A poetic journey through the northern lights, captured in 8K.',
-                    poster: 'aurora',
                     video: 'aurora_echo.mkv',
                     quality: '8K · Dolby Vision',
                     year: '2023',
@@ -764,7 +902,6 @@
                 },
                 'Velocity Drift': {
                     desc: 'Underground racing with AI‑driven hypercars. Adrenaline overload.',
-                    poster: 'velocity',
                     video: 'drift_race.mp4',
                     quality: '4K · 60fps',
                     year: '2024',
@@ -772,7 +909,6 @@
                 },
                 'Moonlit Noir': {
                     desc: 'A detective story set in a rain‑soaked futuristic Tokyo.',
-                    poster: 'moonlit',
                     video: 'noir_moon.avi',
                     quality: 'HD · 5.1 Surround',
                     year: '2022',
@@ -780,7 +916,6 @@
                 },
                 'Arcadia Wilds': {
                     desc: 'Nature documentary with never‑seen footage of rare wildlife.',
-                    poster: 'arcadia',
                     video: 'wild_arcadia.mov',
                     quality: '4K · HDR10+',
                     year: '2024',
@@ -788,7 +923,6 @@
                 },
                 'Ghost Signal': {
                     desc: 'A sci‑fi horror about a deep‑space transmission from 1977.',
-                    poster: 'ghost',
                     video: 'ghost_signal.mp4',
                     quality: '1080p · DTS-HD',
                     year: '2023',
@@ -796,7 +930,6 @@
                 },
                 'Stellar Odyssey': {
                     desc: 'An epic space exploration across uncharted galaxies.',
-                    poster: 'stellar',
                     video: 'stellar_odyssey.mp4',
                     quality: '8K · Dolby Atmos',
                     year: '2024',
@@ -804,7 +937,6 @@
                 },
                 'Crimson Tide': {
                     desc: 'Naval thriller set during a global maritime crisis.',
-                    poster: 'crimson',
                     video: 'crimson_tide.mkv',
                     quality: '4K · 5.1',
                     year: '2023',
@@ -812,7 +944,6 @@
                 },
                 'Digital Frontier': {
                     desc: 'A hacker fights against a corrupt AI-controlled megacorporation.',
-                    poster: 'digital',
                     video: 'digital_frontier.mp4',
                     quality: '4K · HDR',
                     year: '2024',
@@ -820,7 +951,6 @@
                 },
                 'Eternal Garden': {
                     desc: 'A fantasy romance set in a magical floating garden.',
-                    poster: 'garden',
                     video: 'eternal_garden.mkv',
                     quality: 'HD · 5.1',
                     year: '2023',
@@ -828,7 +958,6 @@
                 },
                 'Shadow Protocol': {
                     desc: 'Covert ops and political intrigue in a divided future.',
-                    poster: 'shadow',
                     video: 'shadow_protocol.mp4',
                     quality: '4K · Dolby Atmos',
                     year: '2024',
@@ -836,7 +965,6 @@
                 },
                 'Ocean Depths': {
                     desc: 'Underwater exploration reveals ancient secrets.',
-                    poster: 'ocean',
                     video: 'ocean_depths.mov',
                     quality: '8K · HDR',
                     year: '2023',
@@ -844,25 +972,39 @@
                 }
             };
 
+            // Folder name → poster seed (for fallback images)
+            const posterSeeds = {
+                'Neon Dreamscape': 'neon',
+                'Aurora Echo': 'aurora',
+                'Velocity Drift': 'velocity',
+                'Moonlit Noir': 'moonlit',
+                'Arcadia Wilds': 'arcadia',
+                'Ghost Signal': 'ghost',
+                'Stellar Odyssey': 'stellar',
+                'Crimson Tide': 'crimson',
+                'Digital Frontier': 'digital',
+                'Eternal Garden': 'garden',
+                'Shadow Protocol': 'shadow',
+                'Ocean Depths': 'ocean'
+            };
+
             let allFolders = [];
             let searchQuery = '';
 
             // ================================================================
-            // 2. SCAN FUNCTION
+            // 2. SCAN – build folder list from virtualFileSystem
             // ================================================================
             function scanLocalFolders() {
-                const folderNames = Object.keys(virtualFileSystem);
                 const result = [];
-                for (const name of folderNames) {
-                    const data = virtualFileSystem[name];
+                for (const [name, data] of Object.entries(virtualFileSystem)) {
                     result.push({
                         folderName: name,
-                        description: data.desc,
-                        posterSeed: data.poster,
-                        videoFile: data.video,
+                        description: data.desc || 'No description',
+                        videoFile: data.video || 'video.mp4',
                         quality: data.quality || 'HD',
                         year: data.year || '2024',
-                        maturity: data.maturity || 'PG'
+                        maturity: data.maturity || 'PG',
+                        posterSeed: posterSeeds[name] || name.replace(/\s/g, '').toLowerCase()
                     });
                 }
                 result.sort((a, b) => a.folderName.localeCompare(b.folderName));
@@ -870,7 +1012,16 @@
             }
 
             // ================================================================
-            // 3. RENDER ROWS (with search support)
+            // 3. BUILD VIDEO PATH
+            // ================================================================
+            function getVideoPath(folderName, videoFile) {
+                // Assumes your videos are served from the `/videos/` directory
+                // e.g. /videos/Neon%20Dreamscape/neon_dreamscape.mp4
+                return `videos/${encodeURIComponent(folderName)}/${encodeURIComponent(videoFile)}`;
+            }
+
+            // ================================================================
+            // 4. RENDER ROWS
             // ================================================================
             function renderRows(query = '') {
                 const container = document.getElementById('rowsContainer');
@@ -879,7 +1030,6 @@
                 allFolders = scanLocalFolders();
                 navBadge.textContent = allFolders.length;
 
-                // Filter folders based on search query
                 let filteredFolders = allFolders;
                 if (query.trim() !== '') {
                     const q = query.toLowerCase().trim();
@@ -895,20 +1045,22 @@
                         <div class="empty-state">
                             <i class="fas fa-folder-open"></i>
                             <p style="font-size:1.2rem;">No local folders detected</p>
-                            <p style="opacity:0.5;font-size:0.9rem;">Place folders with videos in the library directory.</p>
+                            <p style="opacity:0.5;font-size:0.9rem;">
+                                Add folders inside <code style="background:#2a2a2a;padding:0.1rem 0.6rem;border-radius:4px;">/videos/</code>
+                                and define them in <code style="background:#2a2a2a;padding:0.1rem 0.6rem;border-radius:4px;">virtualFileSystem</code>.
+                            </p>
                         </div>
                     `;
                     return;
                 }
 
-                // ---- Hero: pick first folder from filtered results ----
+                // Hero: first filtered folder
                 const featured = filteredFolders.length > 0 ? filteredFolders[0] : allFolders[0];
                 updateHero(featured);
 
-                // ---- Build rows ----
                 let html = '';
 
-                // Search results row (visible when searching)
+                // ---- Search results row ----
                 if (query.trim() !== '') {
                     html += `
                         <div class="row search-results-row active">
@@ -922,7 +1074,6 @@
                             </div>
                             <div class="movie-scroll">
                     `;
-
                     if (filteredFolders.length === 0) {
                         html += `
                             <div class="no-results">
@@ -932,87 +1083,56 @@
                             </div>
                         `;
                     } else {
-                        filteredFolders.forEach((folder) => {
-                            html += createMovieCardHTML(folder);
-                        });
+                        filteredFolders.forEach(f => { html += createMovieCardHTML(f); });
                     }
+                    html += `</div></div>`;
+                }
 
+                const hiddenClass = query.trim() !== '' ? 'hidden' : '';
+
+                // ---- Trending Now ----
+                const trending = allFolders.slice(0, 6);
+                if (trending.length) {
                     html += `
+                        <div class="row ${hiddenClass}">
+                            <div class="row-header">
+                                <div class="row-title"><i class="fas fa-fire"></i> Trending Now</div>
+                                <div class="row-view-all">View All <i class="fas fa-chevron-right"></i></div>
+                            </div>
+                            <div class="movie-scroll">
+                                ${trending.map(f => createMovieCardHTML(f)).join('')}
                             </div>
                         </div>
                     `;
                 }
 
-                // Regular rows (hidden when searching)
-                const regularRowsHidden = query.trim() !== '' ? 'hidden' : '';
-
-                // Row 1: "Trending Now" (first 6)
-                const trendingItems = allFolders.slice(0, 6);
-                if (trendingItems.length > 0) {
+                // ---- Popular ----
+                const popular = allFolders.slice(6, 12);
+                if (popular.length) {
                     html += `
-                        <div class="row ${regularRowsHidden}">
+                        <div class="row ${hiddenClass}">
                             <div class="row-header">
-                                <div class="row-title">
-                                    <i class="fas fa-fire"></i> Trending Now
-                                </div>
-                                <div class="row-view-all">
-                                    View All <i class="fas fa-chevron-right"></i>
-                                </div>
+                                <div class="row-title"><i class="fas fa-chart-line"></i> Popular on CineVault</div>
+                                <div class="row-view-all">View All <i class="fas fa-chevron-right"></i></div>
                             </div>
                             <div class="movie-scroll">
-                    `;
-                    trendingItems.forEach((folder) => {
-                        html += createMovieCardHTML(folder);
-                    });
-                    html += `
+                                ${popular.map(f => createMovieCardHTML(f)).join('')}
                             </div>
                         </div>
                     `;
                 }
 
-                // Row 2: "Popular on CineVault" (next 6)
-                const popularItems = allFolders.slice(6, 12);
-                if (popularItems.length > 0) {
+                // ---- Continue Watching (shuffle) ----
+                const shuffled = [...allFolders].sort(() => Math.random() - 0.5).slice(0, 6);
+                if (shuffled.length) {
                     html += `
-                        <div class="row ${regularRowsHidden}">
+                        <div class="row ${hiddenClass}">
                             <div class="row-header">
-                                <div class="row-title">
-                                    <i class="fas fa-chart-line"></i> Popular on CineVault
-                                </div>
-                                <div class="row-view-all">
-                                    View All <i class="fas fa-chevron-right"></i>
-                                </div>
+                                <div class="row-title"><i class="fas fa-clock"></i> Continue Watching</div>
+                                <div class="row-view-all">View All <i class="fas fa-chevron-right"></i></div>
                             </div>
                             <div class="movie-scroll">
-                    `;
-                    popularItems.forEach((folder) => {
-                        html += createMovieCardHTML(folder);
-                    });
-                    html += `
-                            </div>
-                        </div>
-                    `;
-                }
-
-                // Row 3: "Continue Watching" (random subset)
-                const continueItems = [...allFolders].sort(() => Math.random() - 0.5).slice(0, 6);
-                if (continueItems.length > 0) {
-                    html += `
-                        <div class="row ${regularRowsHidden}">
-                            <div class="row-header">
-                                <div class="row-title">
-                                    <i class="fas fa-clock"></i> Continue Watching
-                                </div>
-                                <div class="row-view-all">
-                                    View All <i class="fas fa-chevron-right"></i>
-                                </div>
-                            </div>
-                            <div class="movie-scroll">
-                    `;
-                    continueItems.forEach((folder) => {
-                        html += createMovieCardHTML(folder);
-                    });
-                    html += `
+                                ${shuffled.map(f => createMovieCardHTML(f)).join('')}
                             </div>
                         </div>
                     `;
@@ -1020,35 +1140,63 @@
 
                 container.innerHTML = html;
 
-                // ---- Click on card: update hero ----
+                // ---- Attach click events to cards and play buttons ----
                 document.querySelectorAll('.movie-card').forEach(card => {
-                    card.addEventListener('click', function() {
-                        const folderName = this.dataset.folder;
-                        const folder = virtualFileSystem[folderName];
-                        if (!folder) return;
-                        updateHero({
-                            folderName: folderName,
-                            description: folder.desc,
-                            quality: folder.quality,
-                            videoFile: folder.video,
-                            posterSeed: folder.poster
-                        });
-                        // scroll to top
-                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                    const folderName = card.dataset.folder;
+                    // Click on card → update hero
+                    card.addEventListener('click', function(e) {
+                        // Ignore if click was on the play button (handled separately)
+                        if (e.target.closest('.play-btn')) return;
+                        const folder = allFolders.find(f => f.folderName === folderName);
+                        if (folder) {
+                            updateHero(folder);
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                        }
                     });
+                    // Play button inside card → open modal
+                    const playBtn = card.querySelector('.play-btn');
+                    if (playBtn) {
+                        playBtn.addEventListener('click', function(e) {
+                            e.stopPropagation();
+                            const folder = allFolders.find(f => f.folderName === folderName);
+                            if (folder) openVideoModal(folder);
+                        });
+                    }
                 });
+
+                // ---- Hero Play button ----
+                const heroPlay = document.getElementById('heroPlayBtn');
+                heroPlay.onclick = function() {
+                    const featuredNow = filteredFolders.length > 0 ? filteredFolders[0] : allFolders[0];
+                    if (featuredNow) openVideoModal(featuredNow);
+                };
             }
 
             // ================================================================
-            // 4. HELPERS
+            // 5. CREATE MOVIE CARD HTML
             // ================================================================
             function createMovieCardHTML(folder) {
+                const videoPath = getVideoPath(folder.folderName, folder.videoFile);
+                // Use video element as thumbnail (shows first frame via preload=metadata)
+                // Fallback: if video fails, show a poster image from picsum
                 const posterUrl =
-                    `https://picsum.photos/seed/${folder.posterSeed || folder.folderName.replace(/\s/g, '')}/400/225`;
+                    `https://picsum.photos/seed/${folder.posterSeed}/400/225`;
+
                 return `
                     <div class="movie-card" data-folder="${folder.folderName}">
                         <div class="thumbnail">
-                            <img src="${posterUrl}" alt="${folder.folderName}" loading="lazy" />
+                            <video
+                                src="${videoPath}"
+                                muted
+                                preload="metadata"
+                                playsinline
+                                poster="${posterUrl}"
+                                onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+                            ></video>
+                            <div class="poster-fallback" style="display:none;position:absolute;inset:0;">
+                                <i class="fas fa-film"></i>
+                                <span>${folder.folderName}</span>
+                            </div>
                             <div class="badge-top"><i class="fas fa-play-circle"></i> ${folder.quality}</div>
                             <div class="card-hover">
                                 <button class="play-btn"><i class="fas fa-play"></i></button>
@@ -1068,6 +1216,9 @@
                 `;
             }
 
+            // ================================================================
+            // 6. HERO UPDATE
+            // ================================================================
             function updateHero(folder) {
                 if (!folder) return;
                 document.getElementById('heroTitle').textContent = folder.folderName;
@@ -1077,44 +1228,79 @@
                 document.getElementById('heroFolder').textContent = folder.folderName;
                 const backdrop = document.getElementById('heroBackdrop');
                 backdrop.style.backgroundImage =
-                    `url('https://picsum.photos/seed/${folder.posterSeed || folder.folderName.replace(/\s/g, '')}/1920/1080')`;
+                    `url('https://picsum.photos/seed/${folder.posterSeed}/1920/1080')`;
             }
 
             // ================================================================
-            // 5. SEARCH FUNCTIONALITY
+            // 7. VIDEO MODAL
+            // ================================================================
+            function openVideoModal(folder) {
+                const modal = document.getElementById('videoModal');
+                const video = document.getElementById('modalVideo');
+                const title = document.getElementById('modalTitle');
+                const folderEl = document.getElementById('modalFolder');
+                const fileEl = document.getElementById('modalFile');
+                const qualityEl = document.getElementById('modalQuality');
+
+                const videoPath = getVideoPath(folder.folderName, folder.videoFile);
+
+                video.src = videoPath;
+                video.load();
+                title.textContent = folder.folderName;
+                folderEl.textContent = folder.folderName;
+                fileEl.textContent = folder.videoFile;
+                qualityEl.textContent = folder.quality || 'HD';
+
+                modal.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+
+            function closeVideoModal() {
+                const modal = document.getElementById('videoModal');
+                const video = document.getElementById('modalVideo');
+                modal.classList.remove('active');
+                video.pause();
+                video.src = '';
+                video.load();
+                document.body.style.overflow = '';
+            }
+
+            // ---- Modal close events ----
+            document.getElementById('videoModalClose').addEventListener('click', closeVideoModal);
+            document.getElementById('videoModal').addEventListener('click', function(e) {
+                if (e.target === this) closeVideoModal();
+            });
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') closeVideoModal();
+            });
+
+            // ================================================================
+            // 8. SEARCH
             // ================================================================
             function handleSearch(query) {
                 searchQuery = query;
                 renderRows(query);
-                // Update search input
                 const input = document.getElementById('searchInput');
                 const clearBtn = document.getElementById('searchClear');
-                if (query !== input.value) {
-                    input.value = query;
-                }
+                if (query !== input.value) input.value = query;
                 clearBtn.classList.toggle('visible', query.length > 0);
             }
 
             // ================================================================
-            // 6. NAVBAR SCROLL EFFECT
+            // 9. NAVBAR SCROLL
             // ================================================================
             function handleNavbar() {
                 const navbar = document.getElementById('navbar');
-                if (window.scrollY > 50) {
-                    navbar.classList.add('scrolled');
-                } else {
-                    navbar.classList.remove('scrolled');
-                }
+                navbar.classList.toggle('scrolled', window.scrollY > 50);
             }
 
             // ================================================================
-            // 7. INIT
+            // 10. INIT
             // ================================================================
             document.addEventListener('DOMContentLoaded', function() {
                 renderRows('');
                 handleNavbar();
 
-                // ---- Search toggle ----
                 const searchToggle = document.getElementById('searchToggle');
                 const searchInput = document.getElementById('searchInput');
                 const searchClear = document.getElementById('searchClear');
@@ -1130,19 +1316,16 @@
                     }
                 });
 
-                // ---- Search input ----
                 searchInput.addEventListener('input', function() {
                     handleSearch(this.value);
                 });
 
-                // ---- Search clear ----
                 searchClear.addEventListener('click', function() {
                     handleSearch('');
                     searchInput.classList.remove('active');
                     searchInput.blur();
                 });
 
-                // ---- Close search on Escape ----
                 searchInput.addEventListener('keydown', function(e) {
                     if (e.key === 'Escape') {
                         handleSearch('');
@@ -1151,7 +1334,6 @@
                     }
                 });
 
-                // ---- Click outside to close ----
                 document.addEventListener('click', function(e) {
                     const container = document.querySelector('.search-container');
                     if (container && !container.contains(e.target)) {
@@ -1163,13 +1345,14 @@
 
                 window.addEventListener('scroll', handleNavbar);
 
-                // Re-scan every 10s to simulate live updates
+                // Re-scan every 15s to simulate live updates
                 setInterval(() => {
                     renderRows(searchQuery);
-                }, 10000);
+                }, 15000);
             });
 
         })();
     </script>
+
 </body>
 </html>
