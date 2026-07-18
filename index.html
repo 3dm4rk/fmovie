@@ -6,12 +6,12 @@
     <title>CineVault · Local Video Library</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
     <style>
+        /* ── reset & base ── */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-
         body {
             background: #141414;
             font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
@@ -19,6 +19,7 @@
             overflow-x: hidden;
         }
 
+        /* ── navbar ── */
         .navbar {
             position: fixed;
             top: 0;
@@ -34,19 +35,16 @@
             flex-wrap: wrap;
             gap: 0.8rem;
         }
-
         .navbar.scrolled {
             background: rgba(20, 20, 20, 0.98);
             box-shadow: 0 2px 20px rgba(0, 0, 0, 0.8);
         }
-
         .nav-left {
             display: flex;
             align-items: center;
             gap: 2.5rem;
             flex-wrap: wrap;
         }
-
         .nav-logo {
             font-weight: 800;
             font-size: 1.8rem;
@@ -56,13 +54,7 @@
             background-clip: text;
             color: transparent;
             cursor: pointer;
-            transition: transform 0.2s ease;
         }
-
-        .nav-logo:hover {
-            transform: scale(1.02);
-        }
-
         .nav-links {
             display: flex;
             gap: 1.5rem;
@@ -70,117 +62,35 @@
             font-size: 0.9rem;
             font-weight: 500;
         }
-
         .nav-links li {
             cursor: pointer;
             color: #b3b3b3;
-            transition: color 0.2s ease;
+            transition: color 0.2s;
         }
-
         .nav-links li:hover,
         .nav-links li.active {
             color: #fff;
         }
-
         .nav-right {
             display: flex;
             align-items: center;
             gap: 1.2rem;
             flex-wrap: wrap;
         }
-
-        .search-container {
-            position: relative;
+        .nav-badge {
+            background: rgba(255, 215, 150, 0.1);
+            border: 1px solid rgba(255, 215, 150, 0.1);
+            padding: 0.25rem 0.9rem;
+            border-radius: 30px;
+            font-size: 0.7rem;
+            color: #d4c9b0;
             display: flex;
             align-items: center;
+            gap: 6px;
         }
-
-        .search-input {
-            background: rgba(0, 0, 0, 0.6);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 30px;
-            padding: 0.4rem 1rem 0.4rem 2.5rem;
-            color: #fff;
-            font-size: 0.9rem;
-            width: 0;
-            opacity: 0;
-            transition: all 0.4s cubic-bezier(0.2, 0.9, 0.4, 1);
-            outline: none;
-            font-family: inherit;
+        .nav-badge i {
+            color: #f5b642;
         }
-
-        .search-input.active {
-            width: 220px;
-            opacity: 1;
-            padding: 0.4rem 1rem 0.4rem 2.5rem;
-            border-color: rgba(255, 215, 150, 0.3);
-            background: rgba(0, 0, 0, 0.8);
-        }
-
-        .search-input:focus {
-            border-color: #f5b642;
-            box-shadow: 0 0 20px rgba(245, 182, 66, 0.1);
-        }
-
-        .search-input::placeholder {
-            color: #8a8a8a;
-            font-weight: 300;
-        }
-
-        .search-icon {
-            position: absolute;
-            left: 10px;
-            color: #8a8a8a;
-            font-size: 0.9rem;
-            pointer-events: none;
-        }
-
-        .search-toggle {
-            background: none;
-            border: none;
-            color: #b3b3b3;
-            font-size: 1.2rem;
-            cursor: pointer;
-            transition: color 0.2s ease;
-            padding: 0.2rem;
-        }
-
-        .search-toggle:hover {
-            color: #fff;
-        }
-
-        .search-clear {
-            position: absolute;
-            right: 10px;
-            color: #8a8a8a;
-            font-size: 0.8rem;
-            cursor: pointer;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-            background: none;
-            border: none;
-            padding: 0.2rem;
-        }
-
-        .search-clear.visible {
-            opacity: 1;
-        }
-
-        .search-clear:hover {
-            color: #fff;
-        }
-
-        .nav-right i:not(.search-toggle) {
-            font-size: 1.2rem;
-            color: #b3b3b3;
-            cursor: pointer;
-            transition: color 0.2s ease;
-        }
-
-        .nav-right i:not(.search-toggle):hover {
-            color: #fff;
-        }
-
         .nav-avatar {
             width: 32px;
             height: 32px;
@@ -194,26 +104,88 @@
             color: #141414;
             cursor: pointer;
         }
+        .nav-right i:not(.search-toggle) {
+            font-size: 1.2rem;
+            color: #b3b3b3;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        .nav-right i:not(.search-toggle):hover {
+            color: #fff;
+        }
 
-        .nav-badge {
-            background: rgba(255, 215, 150, 0.1);
-            border: 1px solid rgba(255, 215, 150, 0.1);
-            padding: 0.25rem 0.9rem;
-            border-radius: 30px;
-            font-size: 0.7rem;
-            color: #d4c9b0;
+        /* ── search ── */
+        .search-container {
+            position: relative;
             display: flex;
             align-items: center;
-            gap: 6px;
-            font-weight: 400;
+        }
+        .search-toggle {
+            background: none;
+            border: none;
+            color: #b3b3b3;
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 0.2rem;
+        }
+        .search-toggle:hover {
+            color: #fff;
+        }
+        .search-input {
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 30px;
+            padding: 0.4rem 1rem 0.4rem 2.5rem;
+            color: #fff;
+            font-size: 0.9rem;
+            width: 0;
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.2, 0.9, 0.4, 1);
+            outline: none;
+            font-family: inherit;
+        }
+        .search-input.active {
+            width: 220px;
+            opacity: 1;
+            padding: 0.4rem 1rem 0.4rem 2.5rem;
+            border-color: rgba(255, 215, 150, 0.3);
+            background: rgba(0, 0, 0, 0.8);
+        }
+        .search-input:focus {
+            border-color: #f5b642;
+            box-shadow: 0 0 20px rgba(245, 182, 66, 0.1);
+        }
+        .search-input::placeholder {
+            color: #8a8a8a;
+            font-weight: 300;
+        }
+        .search-icon {
+            position: absolute;
+            left: 10px;
+            color: #8a8a8a;
+            font-size: 0.9rem;
+            pointer-events: none;
+        }
+        .search-clear {
+            position: absolute;
+            right: 10px;
+            color: #8a8a8a;
+            font-size: 0.8rem;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.3s;
+            background: none;
+            border: none;
+            padding: 0.2rem;
+        }
+        .search-clear.visible {
+            opacity: 1;
+        }
+        .search-clear:hover {
+            color: #fff;
         }
 
-        .nav-badge i {
-            color: #f5b642;
-            font-size: 0.7rem;
-        }
-
-        /* HERO */
+        /* ── hero ── */
         .hero {
             position: relative;
             width: 100%;
@@ -227,7 +199,6 @@
             overflow: hidden;
             transition: all 0.3s ease;
         }
-
         .hero::before {
             content: '';
             position: absolute;
@@ -236,7 +207,6 @@
                 radial-gradient(ellipse at 30% 80%, rgba(100, 200, 255, 0.04) 0%, transparent 50%);
             pointer-events: none;
         }
-
         .hero-backdrop {
             position: absolute;
             inset: 0;
@@ -245,13 +215,11 @@
             filter: blur(2px) brightness(0.6);
             transition: background-image 0.6s ease;
         }
-
         .hero-content {
             position: relative;
             z-index: 2;
             max-width: 600px;
         }
-
         .hero-badge {
             display: inline-block;
             background: rgba(245, 182, 66, 0.15);
@@ -263,7 +231,6 @@
             margin-bottom: 1.2rem;
             letter-spacing: 0.5px;
         }
-
         .hero-title {
             font-size: 4.5rem;
             font-weight: 800;
@@ -274,7 +241,6 @@
             background-clip: text;
             color: transparent;
         }
-
         .hero-desc {
             font-size: 1.1rem;
             color: #b3b3b3;
@@ -283,7 +249,6 @@
             margin-bottom: 1.8rem;
             opacity: 0.9;
         }
-
         .hero-meta {
             display: flex;
             gap: 1.5rem;
@@ -292,24 +257,20 @@
             margin-bottom: 2rem;
             flex-wrap: wrap;
         }
-
         .hero-meta span {
             display: flex;
             align-items: center;
             gap: 6px;
         }
-
         .hero-meta i {
             color: #f5b642;
             font-size: 0.8rem;
         }
-
         .hero-buttons {
             display: flex;
             gap: 1rem;
             flex-wrap: wrap;
         }
-
         .btn-primary {
             background: #fff;
             color: #141414;
@@ -322,14 +283,17 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            transition: all 0.2s ease;
+            transition: all 0.2s;
         }
-
         .btn-primary:hover {
             background: rgba(255, 255, 255, 0.85);
             transform: scale(1.02);
         }
-
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
         .btn-secondary {
             background: rgba(109, 109, 110, 0.4);
             color: #fff;
@@ -342,80 +306,23 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            transition: all 0.2s ease;
+            transition: all 0.2s;
             backdrop-filter: blur(4px);
         }
-
         .btn-secondary:hover {
             background: rgba(109, 109, 110, 0.6);
         }
 
-        /* FOLDER SELECTOR */
-        .folder-selector {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            padding: 0.8rem 1.5rem;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 30px;
-            border: 1px solid rgba(255, 215, 150, 0.15);
-            margin-bottom: 1.5rem;
-            flex-wrap: wrap;
-        }
-
-        .folder-selector .label {
-            font-size: 0.85rem;
-            color: #b3b3b3;
-        }
-
-        .folder-selector .folder-path {
-            font-size: 0.85rem;
-            color: #f5b642;
-            font-weight: 500;
-            max-width: 300px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
-        .btn-folder {
-            background: linear-gradient(135deg, #f7c948, #e09600);
-            color: #141414;
-            border: none;
-            padding: 0.5rem 1.5rem;
-            border-radius: 30px;
-            font-weight: 600;
-            font-size: 0.85rem;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .btn-folder:hover {
-            transform: scale(1.02);
-            box-shadow: 0 4px 20px rgba(245, 182, 66, 0.3);
-        }
-
-        .btn-folder:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        /* ROWS */
+        /* ── rows ── */
         .rows-container {
             padding: 0 4% 3rem;
             position: relative;
             z-index: 2;
             margin-top: -4rem;
         }
-
         .row {
             margin-bottom: 2.8rem;
         }
-
         .row-header {
             display: flex;
             align-items: center;
@@ -423,7 +330,6 @@
             margin-bottom: 1rem;
             padding: 0 0.5rem;
         }
-
         .row-title {
             font-size: 1.5rem;
             font-weight: 700;
@@ -433,27 +339,23 @@
             align-items: center;
             gap: 10px;
         }
-
         .row-title i {
             color: #f5b642;
             font-size: 1.2rem;
             opacity: 0.7;
         }
-
         .row-view-all {
             font-size: 0.85rem;
             color: #b3b3b3;
             cursor: pointer;
-            transition: color 0.2s ease;
+            transition: color 0.2s;
             display: flex;
             align-items: center;
             gap: 6px;
         }
-
         .row-view-all:hover {
             color: #fff;
         }
-
         .movie-scroll {
             display: flex;
             gap: 1rem;
@@ -462,23 +364,20 @@
             scroll-behavior: smooth;
             -webkit-overflow-scrolling: touch;
         }
-
         .movie-scroll::-webkit-scrollbar {
             height: 4px;
             background: transparent;
         }
-
         .movie-scroll::-webkit-scrollbar-thumb {
             background: #f5b642;
             border-radius: 10px;
         }
-
         .movie-scroll::-webkit-scrollbar-track {
             background: rgba(255, 255, 255, 0.02);
             border-radius: 10px;
         }
 
-        /* MOVIE CARD */
+        /* ── movie card ── */
         .movie-card {
             flex: 0 0 220px;
             min-width: 200px;
@@ -490,14 +389,12 @@
             position: relative;
             border: 2px solid transparent;
         }
-
         .movie-card:hover {
             transform: scale(1.08);
             z-index: 10;
             border-color: rgba(255, 255, 255, 0.1);
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8);
         }
-
         .movie-card .thumbnail {
             position: relative;
             aspect-ratio: 16 / 9;
@@ -505,19 +402,17 @@
             background: #0a0a0a;
             overflow: hidden;
         }
-
-        .movie-card .thumbnail video {
+        .movie-card .thumbnail img {
             width: 100%;
             height: 100%;
             object-fit: cover;
             display: block;
             background: #0a0a0a;
         }
-
         .movie-card .thumbnail .poster-fallback {
             width: 100%;
             height: 100%;
-            display: flex;
+            display: none;
             align-items: center;
             justify-content: center;
             background: linear-gradient(135deg, #1a1a2e, #0a0e14);
@@ -525,19 +420,18 @@
             font-size: 2.5rem;
             flex-direction: column;
             gap: 8px;
+            position: absolute;
+            inset: 0;
         }
-
         .movie-card .thumbnail .poster-fallback i {
             font-size: 3rem;
             color: #f5b642;
             opacity: 0.4;
         }
-
         .movie-card .thumbnail .poster-fallback span {
             font-size: 0.8rem;
             opacity: 0.5;
         }
-
         .movie-card .badge-top {
             position: absolute;
             top: 8px;
@@ -552,13 +446,11 @@
             z-index: 2;
             font-weight: 500;
         }
-
         .movie-card .badge-top i {
             color: #f5b642;
             font-size: 0.55rem;
             margin-right: 4px;
         }
-
         .movie-card .card-hover {
             position: absolute;
             bottom: 0;
@@ -567,14 +459,12 @@
             padding: 1.5rem 1rem 1rem;
             background: linear-gradient(to top, rgba(0, 0, 0, 0.95) 0%, transparent 100%);
             opacity: 0;
-            transition: opacity 0.3s ease;
+            transition: opacity 0.3s;
             pointer-events: none;
         }
-
         .movie-card:hover .card-hover {
             opacity: 1;
         }
-
         .movie-card .card-hover .play-btn {
             width: 40px;
             height: 40px;
@@ -587,20 +477,17 @@
             justify-content: center;
             font-size: 1rem;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all 0.2s;
             margin-bottom: 0.5rem;
             pointer-events: auto;
         }
-
         .movie-card .card-hover .play-btn:hover {
             transform: scale(1.1);
         }
-
         .movie-card .card-info {
             padding: 0.7rem 0.5rem 0.5rem;
             background: #1a1a1a;
         }
-
         .movie-card .card-info .title {
             font-size: 0.9rem;
             font-weight: 600;
@@ -609,7 +496,6 @@
             overflow: hidden;
             text-overflow: ellipsis;
         }
-
         .movie-card .card-info .meta {
             display: flex;
             align-items: center;
@@ -619,28 +505,24 @@
             margin-top: 4px;
             flex-wrap: wrap;
         }
-
         .movie-card .card-info .meta i {
             color: #f5b642;
             font-size: 0.6rem;
         }
 
-        /* SEARCH RESULTS */
+        /* ── search results ── */
         .search-results-row {
             display: none;
         }
-
         .search-results-row.active {
             display: block;
         }
-
         .no-results {
             text-align: center;
             padding: 3rem 2rem;
             color: #6a6a6a;
             width: 100%;
         }
-
         .no-results i {
             font-size: 2.5rem;
             color: #f5b642;
@@ -648,12 +530,11 @@
             margin-bottom: 1rem;
             display: block;
         }
-
         .row.hidden {
             display: none;
         }
 
-        /* VIDEO MODAL */
+        /* ── video modal ── */
         .video-modal {
             display: none;
             position: fixed;
@@ -665,11 +546,9 @@
             justify-content: center;
             padding: 2rem;
         }
-
         .video-modal.active {
             display: flex;
         }
-
         .video-modal-content {
             position: relative;
             width: 100%;
@@ -679,7 +558,6 @@
             overflow: hidden;
             box-shadow: 0 40px 80px rgba(0, 0, 0, 0.9);
         }
-
         .video-modal-close {
             position: absolute;
             top: 16px;
@@ -696,34 +574,29 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: all 0.2s ease;
+            transition: all 0.2s;
             backdrop-filter: blur(4px);
         }
-
         .video-modal-close:hover {
             background: rgba(255, 255, 255, 0.15);
             transform: scale(1.05);
         }
-
         .video-modal video {
             width: 100%;
             display: block;
             background: #000;
             max-height: 85vh;
         }
-
         .video-modal-info {
             padding: 1.2rem 2rem 1.8rem;
             background: linear-gradient(to top, #0a0a0a 0%, #141414 100%);
         }
-
         .video-modal-info h2 {
             font-size: 1.5rem;
             font-weight: 700;
             margin-bottom: 0.3rem;
             color: #e5e5e5;
         }
-
         .video-modal-info .sub {
             color: #8a8a8a;
             font-size: 0.9rem;
@@ -731,41 +604,17 @@
             gap: 1.2rem;
             flex-wrap: wrap;
         }
-
         .video-modal-info .sub i {
             color: #f5b642;
             margin-right: 4px;
         }
 
-        /* LOADING */
-        .loading-spinner {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 3rem;
-            gap: 1rem;
-            color: #b3b3b3;
-        }
-
-        .loading-spinner i {
-            font-size: 2rem;
-            color: #f5b642;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            to {
-                transform: rotate(360deg);
-            }
-        }
-
-        /* EMPTY STATE */
+        /* ── empty / loading ── */
         .empty-state {
             text-align: center;
             padding: 4rem 2rem;
             color: #6a6a6a;
         }
-
         .empty-state i {
             font-size: 3rem;
             color: #f5b642;
@@ -773,21 +622,36 @@
             margin-bottom: 1rem;
             display: block;
         }
-
         .empty-state .hint {
             color: #8a8a8a;
             font-size: 0.95rem;
             margin-top: 0.5rem;
         }
-
         .empty-state .hint code {
             background: #2a2a2a;
             padding: 0.1rem 0.6rem;
             border-radius: 4px;
             font-size: 0.85rem;
         }
+        .loading-spinner {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: #b3b3b3;
+        }
+        .loading-spinner i {
+            font-size: 2.5rem;
+            color: #f5b642;
+            animation: spin 1s linear infinite;
+            display: block;
+            margin-bottom: 1rem;
+        }
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
 
-        /* RESPONSIVE */
+        /* ── responsive ── */
         @media (max-width: 768px) {
             .hero-title {
                 font-size: 2.8rem;
@@ -826,16 +690,7 @@
             .video-modal-info {
                 padding: 1rem 1.2rem 1.4rem;
             }
-            .folder-selector {
-                padding: 0.6rem 1rem;
-                flex-direction: column;
-                align-items: stretch;
-            }
-            .folder-selector .folder-path {
-                max-width: 100%;
-            }
         }
-
         @media (max-width: 480px) {
             .hero-title {
                 font-size: 2rem;
@@ -871,7 +726,6 @@
                 font-size: 1.3rem;
             }
         }
-
         ::-webkit-scrollbar {
             width: 6px;
             height: 6px;
@@ -921,8 +775,8 @@
         <div class="hero-backdrop" id="heroBackdrop"></div>
         <div class="hero-content">
             <div class="hero-badge"><i class="fas fa-star" style="margin-right:6px;"></i> Local Library</div>
-            <h1 class="hero-title" id="heroTitle">Select Your Videos Folder</h1>
-            <p class="hero-desc" id="heroDesc">Click the button below to point to your local videos folder.</p>
+            <h1 class="hero-title" id="heroTitle">Your Movies</h1>
+            <p class="hero-desc" id="heroDesc">Scanning your <code style="background:#2a2a2a;padding:0.1rem 0.6rem;border-radius:4px;">/videos/</code> folder…</p>
             <div class="hero-meta">
                 <span><i class="fas fa-folder"></i> <span id="heroFolder">—</span></span>
                 <span><i class="fas fa-file-video"></i> <span id="heroFile">—</span></span>
@@ -935,18 +789,12 @@
         </div>
     </section>
 
-    <!-- ROWS CONTAINER -->
+    <!-- ROWS -->
     <div class="rows-container" id="rowsContainer">
-
-        <!-- Folder Selector -->
-        <div class="folder-selector">
-            <span class="label"><i class="fas fa-folder-open"></i> Videos folder:</span>
-            <span class="folder-path" id="folderPathDisplay">Not selected</span>
-            <button class="btn-folder" id="selectFolderBtn"><i class="fas fa-folder"></i> Select Folder</button>
-            <button class="btn-folder" id="resetFolderBtn" style="background:rgba(255,255,255,0.1);color:#fff;"><i class="fas fa-undo"></i> Reset</button>
+        <div class="loading-spinner" id="initialLoader">
+            <i class="fas fa-spinner"></i>
+            <span>Scanning your <code style="background:#2a2a2a;padding:0.1rem 0.6rem;border-radius:4px;">/videos/</code> folder…</span>
         </div>
-
-        <!-- Movies will be rendered here -->
         <div id="movieRows"></div>
     </div>
 
@@ -960,35 +808,28 @@
                 <div class="sub">
                     <span><i class="fas fa-folder"></i> <span id="modalFolder">Folder</span></span>
                     <span><i class="fas fa-file-video"></i> <span id="modalFile">file.mp4</span></span>
-                    <span><i class="fas fa-video"></i> <span id="modalQuality">HD</span></span>
+                    <span><i class="fas fa-video"></i> <span id="modalQuality">Local</span></span>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
+        // ================================================================
+        //  CineVault – auto‑detects videos from the /videos/ folder
+        //  Uses a simple JSON API: /api/movies
+        //  If you're using a static server, create a movies.json file.
+        // ================================================================
         (function() {
             "use strict";
 
-            // ================================================================
-            // STATE
-            // ================================================================
             let allMovies = [];
             let searchQuery = '';
-            let folderHandle = null;
-            let isScanning = false;
 
-            // Video file extensions we support
-            const VIDEO_EXTS = new Set(['mp4', 'mkv', 'avi', 'mov', 'webm', 'm4v', 'mpg', 'mpeg']);
-
-            // ================================================================
-            // DOM REFS
-            // ================================================================
-            const rowsContainer = document.getElementById('movieRows');
+            // DOM refs
+            const movieRows = document.getElementById('movieRows');
             const navBadge = document.getElementById('navFolderCount');
-            const folderPathDisplay = document.getElementById('folderPathDisplay');
-            const selectFolderBtn = document.getElementById('selectFolderBtn');
-            const resetFolderBtn = document.getElementById('resetFolderBtn');
+            const initialLoader = document.getElementById('initialLoader');
 
             const heroTitle = document.getElementById('heroTitle');
             const heroDesc = document.getElementById('heroDesc');
@@ -1011,123 +852,57 @@
             const searchClear = document.getElementById('searchClear');
 
             // ================================================================
-            // FILE SYSTEM ACCESS API – Scan folder recursively
+            //  FETCH MOVIE LIST FROM API
             // ================================================================
-            async function scanDirectory(dirHandle, path = '') {
-                const movies = [];
-                const entries = [];
-
+            async function fetchMovies() {
                 try {
-                    for await (const entry of dirHandle.values()) {
-                        entries.push(entry);
-                    }
+                    const resp = await fetch('/api/movies');
+                    if (!resp.ok) throw new Error('API error: ' + resp.status);
+                    const data = await resp.json();
+                    return data;
                 } catch (err) {
-                    console.warn('Error reading directory:', err);
-                    return movies;
-                }
-
-                for (const entry of entries) {
-                    const entryPath = path ? `${path}/${entry.name}` : entry.name;
-                    if (entry.kind === 'file') {
-                        const ext = entry.name.split('.').pop().toLowerCase();
-                        if (VIDEO_EXTS.has(ext)) {
-                            // Found a video file – treat the parent folder as the movie
-                            const folderName = path.split('/').pop() || entryPath;
-                            movies.push({
-                                folderName: folderName || 'Untitled',
-                                videoName: entry.name,
-                                videoHandle: entry,
-                                path: entryPath,
-                                // derive a poster seed from the folder name
-                                posterSeed: folderName.replace(/\s/g, '').toLowerCase() || 'movie'
-                            });
-                        }
-                    } else if (entry.kind === 'directory') {
-                        // Recurse into subdirectory
-                        const subMovies = await scanDirectory(entry, entryPath);
-                        movies.push(...subMovies);
+                    console.warn('API fetch failed, trying static movies.json fallback…', err);
+                    try {
+                        const resp = await fetch('movies.json');
+                        if (!resp.ok) throw new Error('movies.json not found');
+                        return await resp.json();
+                    } catch (e2) {
+                        console.error('No movies source found.', e2);
+                        return null;
                     }
-                }
-
-                return movies;
-            }
-
-            // ================================================================
-            // LOAD FROM FOLDER
-            // ================================================================
-            async function loadFromFolder(handle) {
-                if (isScanning) return;
-                isScanning = true;
-                selectFolderBtn.disabled = true;
-                selectFolderBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Scanning...';
-
-                try {
-                    const movies = await scanDirectory(handle, handle.name);
-                    if (movies.length === 0) {
-                        // No videos found – try scanning one level deeper?
-                        // Some users might have videos directly in subfolders, which we already handle.
-                        // But if the user selected a folder that contains subfolders with videos,
-                        // our recursive scan already handles that.
-                        allMovies = [];
-                        renderRows('');
-                        showEmptyState('No video files found', 'Make sure your folders contain video files (MP4, MKV, AVI, MOV, etc.)');
-                        folderPathDisplay.textContent = handle.name + ' (no videos found)';
-                        return;
-                    }
-
-                    // Sort by folder name
-                    movies.sort((a, b) => a.folderName.localeCompare(b.folderName));
-
-                    // Deduplicate by folder name (keep first video per folder)
-                    const unique = new Map();
-                    for (const m of movies) {
-                        if (!unique.has(m.folderName)) {
-                            unique.set(m.folderName, m);
-                        }
-                    }
-                    allMovies = Array.from(unique.values());
-
-                    folderPathDisplay.textContent = handle.name + ` (${allMovies.length} movies)`;
-                    renderRows(searchQuery);
-
-                } catch (err) {
-                    console.error('Error scanning folder:', err);
-                    showEmptyState('Error scanning folder', err.message || 'Please try again.');
-                } finally {
-                    isScanning = false;
-                    selectFolderBtn.disabled = false;
-                    selectFolderBtn.innerHTML = '<i class="fas fa-folder"></i> Select Folder';
                 }
             }
 
             // ================================================================
-            // RENDER
+            //  RENDER
             // ================================================================
-            function renderRows(query = '') {
-                const container = rowsContainer;
+            function renderMovies(movies, query = '') {
+                allMovies = movies || [];
                 navBadge.textContent = allMovies.length;
+
+                if (allMovies.length === 0) {
+                    showEmptyState('No movies found',
+                        'Make sure your <code>/videos/</code> folder contains subfolders with video files (MP4, MKV, AVI, MOV, etc.)'
+                    );
+                    return;
+                }
 
                 let filtered = allMovies;
                 if (query.trim() !== '') {
                     const q = query.toLowerCase().trim();
                     filtered = allMovies.filter(m =>
                         m.folderName.toLowerCase().includes(q) ||
-                        m.videoName.toLowerCase().includes(q)
+                        m.videoFile.toLowerCase().includes(q)
                     );
                 }
 
-                if (allMovies.length === 0) {
-                    showEmptyState('No movies loaded', 'Click "Select Folder" to choose your videos directory.');
-                    return;
-                }
-
-                // Update hero with first filtered movie
+                // Hero: first filtered or first overall
                 const featured = filtered.length > 0 ? filtered[0] : allMovies[0];
                 updateHero(featured);
 
                 let html = '';
 
-                // ---- Search results ----
+                // ---- search results row ----
                 if (query.trim() !== '') {
                     html += `
                         <div class="row search-results-row active">
@@ -1149,24 +924,24 @@
                             </div>
                         `;
                     } else {
-                        filtered.forEach(m => { html += createCardHTML(m); });
+                        filtered.forEach(m => { html += cardHTML(m); });
                     }
                     html += `</div></div>`;
                 }
 
-                const hiddenClass = query.trim() !== '' ? 'hidden' : '';
+                const hidden = query.trim() !== '' ? 'hidden' : '';
 
                 // ---- Trending (first 6) ----
                 const trending = allMovies.slice(0, 6);
                 if (trending.length) {
                     html += `
-                        <div class="row ${hiddenClass}">
+                        <div class="row ${hidden}">
                             <div class="row-header">
                                 <div class="row-title"><i class="fas fa-fire"></i> Trending Now</div>
                                 <div class="row-view-all">View All <i class="fas fa-chevron-right"></i></div>
                             </div>
                             <div class="movie-scroll">
-                                ${trending.map(m => createCardHTML(m)).join('')}
+                                ${trending.map(m => cardHTML(m)).join('')}
                             </div>
                         </div>
                     `;
@@ -1176,13 +951,13 @@
                 const popular = allMovies.slice(6, 12);
                 if (popular.length) {
                     html += `
-                        <div class="row ${hiddenClass}">
+                        <div class="row ${hidden}">
                             <div class="row-header">
                                 <div class="row-title"><i class="fas fa-chart-line"></i> Popular on CineVault</div>
                                 <div class="row-view-all">View All <i class="fas fa-chevron-right"></i></div>
                             </div>
                             <div class="movie-scroll">
-                                ${popular.map(m => createCardHTML(m)).join('')}
+                                ${popular.map(m => cardHTML(m)).join('')}
                             </div>
                         </div>
                     `;
@@ -1192,21 +967,21 @@
                 const shuffled = [...allMovies].sort(() => Math.random() - 0.5).slice(0, 6);
                 if (shuffled.length) {
                     html += `
-                        <div class="row ${hiddenClass}">
+                        <div class="row ${hidden}">
                             <div class="row-header">
                                 <div class="row-title"><i class="fas fa-clock"></i> Continue Watching</div>
                                 <div class="row-view-all">View All <i class="fas fa-chevron-right"></i></div>
                             </div>
                             <div class="movie-scroll">
-                                ${shuffled.map(m => createCardHTML(m)).join('')}
+                                ${shuffled.map(m => cardHTML(m)).join('')}
                             </div>
                         </div>
                     `;
                 }
 
-                container.innerHTML = html;
+                movieRows.innerHTML = html;
 
-                // ---- Attach events ----
+                // ---- attach events ----
                 document.querySelectorAll('.movie-card').forEach(card => {
                     const folderName = card.dataset.folder;
                     const movie = allMovies.find(m => m.folderName === folderName);
@@ -1227,32 +1002,32 @@
                     }
                 });
 
-                // Hero play button
+                // Hero play
                 heroPlayBtn.onclick = function() {
                     const f = filtered.length > 0 ? filtered[0] : allMovies[0];
                     if (f) openVideoModal(f);
                 };
+
+                // hide loader
+                initialLoader.style.display = 'none';
             }
 
             // ================================================================
-            // CREATE CARD HTML
+            //  CARD HTML
             // ================================================================
-            function createCardHTML(movie) {
-                // We'll use a video element with the object URL
-                // But we need to create a URL for the video file.
-                // However, we can't create a URL from a FileSystemFileHandle directly
-                // without reading the file. We'll create it when the user plays it.
-                // For the thumbnail, we'll use a poster image from picsum.
-                const posterUrl = `https://picsum.photos/seed/${movie.posterSeed || movie.folderName.replace(/\s/g, '')}/400/225`;
+            function cardHTML(movie) {
+                const posterSeed = movie.posterSeed || movie.folderName.replace(/\s/g, '').toLowerCase() || 'movie';
+                const posterUrl =
+                    `https://picsum.photos/seed/${posterSeed}/400/225`;
 
                 return `
                     <div class="movie-card" data-folder="${movie.folderName}">
                         <div class="thumbnail">
                             <img src="${posterUrl}" alt="${movie.folderName}" loading="lazy"
-                                 style="width:100%;height:100%;object-fit:cover;display:block;background:#0a0a0a;"
+                                 style="width:100%;height:100%;object-fit:cover;display:block;"
                                  onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"
                             />
-                            <div class="poster-fallback" style="display:none;position:absolute;inset:0;">
+                            <div class="poster-fallback">
                                 <i class="fas fa-film"></i>
                                 <span>${movie.folderName}</span>
                             </div>
@@ -1264,7 +1039,7 @@
                         <div class="card-info">
                             <div class="title">${movie.folderName}</div>
                             <div class="meta">
-                                <span><i class="fas fa-file-video"></i> ${movie.videoName}</span>
+                                <span><i class="fas fa-file-video"></i> ${movie.videoFile}</span>
                             </div>
                         </div>
                     </div>
@@ -1272,82 +1047,71 @@
             }
 
             // ================================================================
-            // UPDATE HERO
+            //  HERO
             // ================================================================
             function updateHero(movie) {
                 heroTitle.textContent = movie.folderName;
                 heroDesc.textContent = `📁 ${movie.path || movie.folderName}`;
                 heroFolder.textContent = movie.folderName;
-                heroFile.textContent = movie.videoName;
+                heroFile.textContent = movie.videoFile;
                 heroQuality.textContent = 'Local File';
+                const seed = movie.posterSeed || movie.folderName.replace(/\s/g, '').toLowerCase() || 'movie';
                 heroBackdrop.style.backgroundImage =
-                    `url('https://picsum.photos/seed/${movie.posterSeed || movie.folderName.replace(/\s/g, '')}/1920/1080')`;
+                    `url('https://picsum.photos/seed/${seed}/1920/1080')`;
                 heroPlayBtn.disabled = false;
             }
 
             // ================================================================
-            // VIDEO MODAL
+            //  VIDEO MODAL
             // ================================================================
-            async function openVideoModal(movie) {
-                try {
-                    // Read the file as a blob and create a URL
-                    const file = await movie.videoHandle.getFile();
-                    const url = URL.createObjectURL(file);
-
-                    modalVideo.src = url;
-                    modalVideo.load();
-                    modalTitle.textContent = movie.folderName;
-                    modalFolder.textContent = movie.folderName;
-                    modalFile.textContent = movie.videoName;
-                    modalQuality.textContent = 'Local File';
-
-                    videoModal.classList.add('active');
-                    document.body.style.overflow = 'hidden';
-                } catch (err) {
-                    console.error('Error playing video:', err);
-                    alert('Could not play this video. Error: ' + err.message);
-                }
+            function openVideoModal(movie) {
+                const videoPath = `videos/${encodeURIComponent(movie.folderName)}/${encodeURIComponent(movie.videoFile)}`;
+                modalVideo.src = videoPath;
+                modalVideo.load();
+                modalTitle.textContent = movie.folderName;
+                modalFolder.textContent = movie.folderName;
+                modalFile.textContent = movie.videoFile;
+                modalQuality.textContent = 'Local File';
+                videoModal.classList.add('active');
+                document.body.style.overflow = 'hidden';
             }
 
             function closeVideoModal() {
                 videoModal.classList.remove('active');
-                if (modalVideo.src) {
-                    modalVideo.pause();
-                    URL.revokeObjectURL(modalVideo.src);
-                    modalVideo.src = '';
-                    modalVideo.load();
-                }
+                modalVideo.pause();
+                modalVideo.src = '';
+                modalVideo.load();
                 document.body.style.overflow = '';
             }
 
             // ================================================================
-            // EMPTY STATE
+            //  EMPTY STATE
             // ================================================================
             function showEmptyState(title, message) {
-                rowsContainer.innerHTML = `
+                movieRows.innerHTML = `
                     <div class="empty-state">
                         <i class="fas fa-folder-open"></i>
                         <p style="font-size:1.2rem;">${title}</p>
                         <p class="hint">${message}</p>
                     </div>
                 `;
-                // Reset hero
-                heroTitle.textContent = 'No videos loaded';
-                heroDesc.textContent = 'Click "Select Folder" to choose your videos directory.';
+                heroTitle.textContent = 'No movies found';
+                heroDesc.textContent = 'Make sure your /videos/ folder contains subfolders with video files.';
                 heroFolder.textContent = '—';
                 heroFile.textContent = '—';
                 heroQuality.textContent = '—';
                 heroPlayBtn.disabled = true;
                 heroBackdrop.style.backgroundImage = 'url(\'https://picsum.photos/seed/empty/1920/1080\')';
                 navBadge.textContent = '0';
+                initialLoader.style.display = 'none';
             }
 
             // ================================================================
-            // SEARCH
+            //  SEARCH
             // ================================================================
             function handleSearch(query) {
                 searchQuery = query;
-                renderRows(query);
+                renderMovies(allMovies, query);
                 const input = document.getElementById('searchInput');
                 const clearBtn = document.getElementById('searchClear');
                 if (query !== input.value) input.value = query;
@@ -1355,47 +1119,7 @@
             }
 
             // ================================================================
-            // FOLDER SELECTION
-            // ================================================================
-            async function selectFolder() {
-                if (!window.showDirectoryPicker) {
-                    alert('Your browser does not support the File System Access API.\n\n' +
-                        'Please use Google Chrome or Microsoft Edge to use this feature.\n\n' +
-                        'Alternatively, you can manually define your videos in the code.');
-                    return;
-                }
-
-                try {
-                    const handle = await window.showDirectoryPicker({ mode: 'read' });
-                    folderHandle = handle;
-                    // Save to sessionStorage for persistence
-                    try {
-                        sessionStorage.setItem('cinevault_folder', handle.name);
-                    } catch (e) { /* ignore */ }
-                    await loadFromFolder(handle);
-                } catch (err) {
-                    if (err.name !== 'AbortError' && err.name !== 'SecurityError') {
-                        console.error('Folder selection error:', err);
-                        alert('Error selecting folder: ' + err.message);
-                    }
-                }
-            }
-
-            function resetFolder() {
-                folderHandle = null;
-                allMovies = [];
-                searchQuery = '';
-                searchInput.value = '';
-                searchInput.classList.remove('active');
-                folderPathDisplay.textContent = 'Not selected';
-                showEmptyState('No movies loaded', 'Click "Select Folder" to choose your videos directory.');
-                try {
-                    sessionStorage.removeItem('cinevault_folder');
-                } catch (e) { /* ignore */ }
-            }
-
-            // ================================================================
-            // NAVBAR SCROLL
+            //  NAVBAR SCROLL
             // ================================================================
             function handleNavbar() {
                 const navbar = document.getElementById('navbar');
@@ -1403,18 +1127,10 @@
             }
 
             // ================================================================
-            // INIT
+            //  INIT
             // ================================================================
-            document.addEventListener('DOMContentLoaded', function() {
-                // Show initial empty state
-                showEmptyState('No movies loaded', 'Click "Select Folder" to choose your videos directory.');
-                handleNavbar();
-
-                // ---- Folder buttons ----
-                selectFolderBtn.addEventListener('click', selectFolder);
-                resetFolderBtn.addEventListener('click', resetFolder);
-
-                // ---- Search ----
+            async function init() {
+                // ---- search events ----
                 searchToggle.addEventListener('click', function(e) {
                     e.stopPropagation();
                     searchInput.classList.toggle('active');
@@ -1425,17 +1141,14 @@
                         handleSearch('');
                     }
                 });
-
                 searchInput.addEventListener('input', function() {
                     handleSearch(this.value);
                 });
-
                 searchClear.addEventListener('click', function() {
                     handleSearch('');
                     searchInput.classList.remove('active');
                     searchInput.blur();
                 });
-
                 searchInput.addEventListener('keydown', function(e) {
                     if (e.key === 'Escape') {
                         handleSearch('');
@@ -1443,7 +1156,6 @@
                         searchInput.blur();
                     }
                 });
-
                 document.addEventListener('click', function(e) {
                     const container = document.querySelector('.search-container');
                     if (container && !container.contains(e.target)) {
@@ -1453,7 +1165,7 @@
                     }
                 });
 
-                // ---- Modal close ----
+                // ---- modal close ----
                 modalClose.addEventListener('click', closeVideoModal);
                 videoModal.addEventListener('click', function(e) {
                     if (e.target === this) closeVideoModal();
@@ -1462,17 +1174,27 @@
                     if (e.key === 'Escape') closeVideoModal();
                 });
 
-                // ---- Scroll ----
+                // ---- scroll ----
                 window.addEventListener('scroll', handleNavbar);
 
-                // ---- Auto-load if folder was previously selected (via session) ----
-                // Not doing auto-load because we can't persist the handle across sessions.
-                // User must click the button each time.
-                // But we can show a helpful message.
+                // ---- load movies ----
+                try {
+                    const data = await fetchMovies();
+                    if (data && Array.isArray(data) && data.length) {
+                        renderMovies(data, '');
+                    } else {
+                        showEmptyState('No movies found',
+                            'Make sure your <code>/videos/</code> folder contains subfolders with video files (MP4, MKV, AVI, MOV, etc.)'
+                        );
+                    }
+                } catch (err) {
+                    console.error('Init error:', err);
+                    showEmptyState('Error loading movies', err.message || 'Check console for details.');
+                }
+            }
 
-                console.log('CineVault ready. Click "Select Folder" to load your videos.');
-            });
-
+            // ---- go ----
+            document.addEventListener('DOMContentLoaded', init);
         })();
     </script>
 
