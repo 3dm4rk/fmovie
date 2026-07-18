@@ -19,7 +19,6 @@
             overflow-x: hidden;
         }
 
-        /* ===== NAVBAR ===== */
         .navbar {
             position: fixed;
             top: 0;
@@ -90,7 +89,6 @@
             flex-wrap: wrap;
         }
 
-        /* ===== SEARCH ===== */
         .search-container {
             position: relative;
             display: flex;
@@ -134,14 +132,7 @@
             left: 10px;
             color: #8a8a8a;
             font-size: 0.9rem;
-            cursor: pointer;
-            transition: color 0.2s ease;
-            z-index: 2;
             pointer-events: none;
-        }
-
-        .search-container:hover .search-icon {
-            color: #fff;
         }
 
         .search-toggle {
@@ -222,7 +213,7 @@
             font-size: 0.7rem;
         }
 
-        /* ===== HERO ===== */
+        /* HERO */
         .hero {
             position: relative;
             width: 100%;
@@ -359,7 +350,61 @@
             background: rgba(109, 109, 110, 0.6);
         }
 
-        /* ===== ROWS ===== */
+        /* FOLDER SELECTOR */
+        .folder-selector {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.8rem 1.5rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 30px;
+            border: 1px solid rgba(255, 215, 150, 0.15);
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .folder-selector .label {
+            font-size: 0.85rem;
+            color: #b3b3b3;
+        }
+
+        .folder-selector .folder-path {
+            font-size: 0.85rem;
+            color: #f5b642;
+            font-weight: 500;
+            max-width: 300px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .btn-folder {
+            background: linear-gradient(135deg, #f7c948, #e09600);
+            color: #141414;
+            border: none;
+            padding: 0.5rem 1.5rem;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-folder:hover {
+            transform: scale(1.02);
+            box-shadow: 0 4px 20px rgba(245, 182, 66, 0.3);
+        }
+
+        .btn-folder:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* ROWS */
         .rows-container {
             padding: 0 4% 3rem;
             position: relative;
@@ -433,7 +478,7 @@
             border-radius: 10px;
         }
 
-        /* ===== MOVIE CARD ===== */
+        /* MOVIE CARD */
         .movie-card {
             flex: 0 0 220px;
             min-width: 200px;
@@ -462,14 +507,6 @@
         }
 
         .movie-card .thumbnail video {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            display: block;
-            background: #0a0a0a;
-        }
-
-        .movie-card .thumbnail img {
             width: 100%;
             height: 100%;
             object-fit: cover;
@@ -588,7 +625,7 @@
             font-size: 0.6rem;
         }
 
-        /* ===== SEARCH RESULTS ===== */
+        /* SEARCH RESULTS */
         .search-results-row {
             display: none;
         }
@@ -616,7 +653,7 @@
             display: none;
         }
 
-        /* ===== VIDEO PLAYER MODAL ===== */
+        /* VIDEO MODAL */
         .video-modal {
             display: none;
             position: fixed;
@@ -700,7 +737,57 @@
             margin-right: 4px;
         }
 
-        /* ===== RESPONSIVE ===== */
+        /* LOADING */
+        .loading-spinner {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 3rem;
+            gap: 1rem;
+            color: #b3b3b3;
+        }
+
+        .loading-spinner i {
+            font-size: 2rem;
+            color: #f5b642;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* EMPTY STATE */
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: #6a6a6a;
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            color: #f5b642;
+            opacity: 0.3;
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        .empty-state .hint {
+            color: #8a8a8a;
+            font-size: 0.95rem;
+            margin-top: 0.5rem;
+        }
+
+        .empty-state .hint code {
+            background: #2a2a2a;
+            padding: 0.1rem 0.6rem;
+            border-radius: 4px;
+            font-size: 0.85rem;
+        }
+
+        /* RESPONSIVE */
         @media (max-width: 768px) {
             .hero-title {
                 font-size: 2.8rem;
@@ -738,6 +825,14 @@
             }
             .video-modal-info {
                 padding: 1rem 1.2rem 1.4rem;
+            }
+            .folder-selector {
+                padding: 0.6rem 1rem;
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .folder-selector .folder-path {
+                max-width: 100%;
             }
         }
 
@@ -789,45 +884,28 @@
         ::-webkit-scrollbar-track {
             background: #1a1a1a;
         }
-
-        .empty-state {
-            grid-column: 1 / -1;
-            text-align: center;
-            padding: 4rem 2rem;
-            color: #6a6a6a;
-        }
-
-        .empty-state i {
-            font-size: 3rem;
-            color: #f5b642;
-            opacity: 0.3;
-            margin-bottom: 1rem;
-            display: block;
-        }
     </style>
 </head>
 <body>
 
-    <!-- ===== NAVBAR ===== -->
+    <!-- NAVBAR -->
     <nav class="navbar" id="navbar">
         <div class="nav-left">
             <div class="nav-logo">CineVault</div>
             <ul class="nav-links">
-                <li class="active" data-filter="all">Home</li>
-                <li data-filter="all">TV Shows</li>
-                <li data-filter="all">Movies</li>
-                <li data-filter="all">New & Popular</li>
-                <li data-filter="all">My List</li>
+                <li class="active">Home</li>
+                <li>TV Shows</li>
+                <li>Movies</li>
+                <li>New & Popular</li>
+                <li>My List</li>
             </ul>
         </div>
         <div class="nav-right">
             <div class="search-container">
-                <button class="search-toggle" id="searchToggle" aria-label="Toggle search">
-                    <i class="fas fa-search"></i>
-                </button>
+                <button class="search-toggle" id="searchToggle"><i class="fas fa-search"></i></button>
                 <input type="text" class="search-input" id="searchInput" placeholder="Search movies..." />
                 <i class="fas fa-search search-icon"></i>
-                <button class="search-clear" id="searchClear" aria-label="Clear search">✕</button>
+                <button class="search-clear" id="searchClear">✕</button>
             </div>
             <i class="fas fa-bell"></i>
             <div class="nav-avatar">C</div>
@@ -838,29 +916,41 @@
         </div>
     </nav>
 
-    <!-- ===== HERO ===== -->
+    <!-- HERO -->
     <section class="hero" id="heroBanner">
         <div class="hero-backdrop" id="heroBackdrop"></div>
         <div class="hero-content">
-            <div class="hero-badge"><i class="fas fa-star" style="margin-right:6px;"></i> Trending Now · Local Library</div>
-            <h1 class="hero-title" id="heroTitle">Neon Dreamscape</h1>
-            <p class="hero-desc" id="heroDesc">A cyberpunk thriller where memories are traded on the black market.</p>
+            <div class="hero-badge"><i class="fas fa-star" style="margin-right:6px;"></i> Local Library</div>
+            <h1 class="hero-title" id="heroTitle">Select Your Videos Folder</h1>
+            <p class="hero-desc" id="heroDesc">Click the button below to point to your local videos folder.</p>
             <div class="hero-meta">
-                <span><i class="fas fa-video"></i> <span id="heroQuality">4K · HDR</span></span>
-                <span><i class="fas fa-file-video"></i> <span id="heroFile">neon_dreamscape.mp4</span></span>
-                <span><i class="fas fa-folder"></i> <span id="heroFolder">Neon Dreamscape</span></span>
+                <span><i class="fas fa-folder"></i> <span id="heroFolder">—</span></span>
+                <span><i class="fas fa-file-video"></i> <span id="heroFile">—</span></span>
+                <span><i class="fas fa-video"></i> <span id="heroQuality">—</span></span>
             </div>
             <div class="hero-buttons">
-                <button class="btn-primary" id="heroPlayBtn"><i class="fas fa-play"></i> Play</button>
+                <button class="btn-primary" id="heroPlayBtn" disabled><i class="fas fa-play"></i> Play</button>
                 <button class="btn-secondary"><i class="fas fa-plus"></i> My List</button>
             </div>
         </div>
     </section>
 
-    <!-- ===== ROWS ===== -->
-    <div class="rows-container" id="rowsContainer"></div>
+    <!-- ROWS CONTAINER -->
+    <div class="rows-container" id="rowsContainer">
 
-    <!-- ===== VIDEO MODAL ===== -->
+        <!-- Folder Selector -->
+        <div class="folder-selector">
+            <span class="label"><i class="fas fa-folder-open"></i> Videos folder:</span>
+            <span class="folder-path" id="folderPathDisplay">Not selected</span>
+            <button class="btn-folder" id="selectFolderBtn"><i class="fas fa-folder"></i> Select Folder</button>
+            <button class="btn-folder" id="resetFolderBtn" style="background:rgba(255,255,255,0.1);color:#fff;"><i class="fas fa-undo"></i> Reset</button>
+        </div>
+
+        <!-- Movies will be rendered here -->
+        <div id="movieRows"></div>
+    </div>
+
+    <!-- VIDEO MODAL -->
     <div class="video-modal" id="videoModal">
         <div class="video-modal-content">
             <button class="video-modal-close" id="videoModalClose"><i class="fas fa-times"></i></button>
@@ -881,186 +971,163 @@
             "use strict";
 
             // ================================================================
-            // 1. VIRTUAL FILE SYSTEM – map folder → video metadata
-            //    Each entry must match a subfolder inside your `videos/` directory.
-            //    The `video` field is the filename inside that folder.
+            // STATE
             // ================================================================
-            const virtualFileSystem = {
-                'Neon Dreamscape': {
-                    desc: 'A cyberpunk thriller where memories are traded on the black market.',
-                    video: 'neon_dreamscape.mp4',
-                    quality: '4K · HDR',
-                    year: '2024',
-                    maturity: '16+'
-                },
-                'Aurora Echo': {
-                    desc: 'A poetic journey through the northern lights, captured in 8K.',
-                    video: 'aurora_echo.mkv',
-                    quality: '8K · Dolby Vision',
-                    year: '2023',
-                    maturity: 'PG'
-                },
-                'Velocity Drift': {
-                    desc: 'Underground racing with AI‑driven hypercars. Adrenaline overload.',
-                    video: 'drift_race.mp4',
-                    quality: '4K · 60fps',
-                    year: '2024',
-                    maturity: '18+'
-                },
-                'Moonlit Noir': {
-                    desc: 'A detective story set in a rain‑soaked futuristic Tokyo.',
-                    video: 'noir_moon.avi',
-                    quality: 'HD · 5.1 Surround',
-                    year: '2022',
-                    maturity: '15+'
-                },
-                'Arcadia Wilds': {
-                    desc: 'Nature documentary with never‑seen footage of rare wildlife.',
-                    video: 'wild_arcadia.mov',
-                    quality: '4K · HDR10+',
-                    year: '2024',
-                    maturity: 'PG'
-                },
-                'Ghost Signal': {
-                    desc: 'A sci‑fi horror about a deep‑space transmission from 1977.',
-                    video: 'ghost_signal.mp4',
-                    quality: '1080p · DTS-HD',
-                    year: '2023',
-                    maturity: '18+'
-                },
-                'Stellar Odyssey': {
-                    desc: 'An epic space exploration across uncharted galaxies.',
-                    video: 'stellar_odyssey.mp4',
-                    quality: '8K · Dolby Atmos',
-                    year: '2024',
-                    maturity: '12+'
-                },
-                'Crimson Tide': {
-                    desc: 'Naval thriller set during a global maritime crisis.',
-                    video: 'crimson_tide.mkv',
-                    quality: '4K · 5.1',
-                    year: '2023',
-                    maturity: '16+'
-                },
-                'Digital Frontier': {
-                    desc: 'A hacker fights against a corrupt AI-controlled megacorporation.',
-                    video: 'digital_frontier.mp4',
-                    quality: '4K · HDR',
-                    year: '2024',
-                    maturity: '18+'
-                },
-                'Eternal Garden': {
-                    desc: 'A fantasy romance set in a magical floating garden.',
-                    video: 'eternal_garden.mkv',
-                    quality: 'HD · 5.1',
-                    year: '2023',
-                    maturity: '12+'
-                },
-                'Shadow Protocol': {
-                    desc: 'Covert ops and political intrigue in a divided future.',
-                    video: 'shadow_protocol.mp4',
-                    quality: '4K · Dolby Atmos',
-                    year: '2024',
-                    maturity: '16+'
-                },
-                'Ocean Depths': {
-                    desc: 'Underwater exploration reveals ancient secrets.',
-                    video: 'ocean_depths.mov',
-                    quality: '8K · HDR',
-                    year: '2023',
-                    maturity: 'PG'
-                }
-            };
-
-            // Folder name → poster seed (for fallback images)
-            const posterSeeds = {
-                'Neon Dreamscape': 'neon',
-                'Aurora Echo': 'aurora',
-                'Velocity Drift': 'velocity',
-                'Moonlit Noir': 'moonlit',
-                'Arcadia Wilds': 'arcadia',
-                'Ghost Signal': 'ghost',
-                'Stellar Odyssey': 'stellar',
-                'Crimson Tide': 'crimson',
-                'Digital Frontier': 'digital',
-                'Eternal Garden': 'garden',
-                'Shadow Protocol': 'shadow',
-                'Ocean Depths': 'ocean'
-            };
-
-            let allFolders = [];
+            let allMovies = [];
             let searchQuery = '';
+            let folderHandle = null;
+            let isScanning = false;
+
+            // Video file extensions we support
+            const VIDEO_EXTS = new Set(['mp4', 'mkv', 'avi', 'mov', 'webm', 'm4v', 'mpg', 'mpeg']);
 
             // ================================================================
-            // 2. SCAN – build folder list from virtualFileSystem
+            // DOM REFS
             // ================================================================
-            function scanLocalFolders() {
-                const result = [];
-                for (const [name, data] of Object.entries(virtualFileSystem)) {
-                    result.push({
-                        folderName: name,
-                        description: data.desc || 'No description',
-                        videoFile: data.video || 'video.mp4',
-                        quality: data.quality || 'HD',
-                        year: data.year || '2024',
-                        maturity: data.maturity || 'PG',
-                        posterSeed: posterSeeds[name] || name.replace(/\s/g, '').toLowerCase()
-                    });
+            const rowsContainer = document.getElementById('movieRows');
+            const navBadge = document.getElementById('navFolderCount');
+            const folderPathDisplay = document.getElementById('folderPathDisplay');
+            const selectFolderBtn = document.getElementById('selectFolderBtn');
+            const resetFolderBtn = document.getElementById('resetFolderBtn');
+
+            const heroTitle = document.getElementById('heroTitle');
+            const heroDesc = document.getElementById('heroDesc');
+            const heroFolder = document.getElementById('heroFolder');
+            const heroFile = document.getElementById('heroFile');
+            const heroQuality = document.getElementById('heroQuality');
+            const heroBackdrop = document.getElementById('heroBackdrop');
+            const heroPlayBtn = document.getElementById('heroPlayBtn');
+
+            const modalVideo = document.getElementById('modalVideo');
+            const modalTitle = document.getElementById('modalTitle');
+            const modalFolder = document.getElementById('modalFolder');
+            const modalFile = document.getElementById('modalFile');
+            const modalQuality = document.getElementById('modalQuality');
+            const videoModal = document.getElementById('videoModal');
+            const modalClose = document.getElementById('videoModalClose');
+
+            const searchInput = document.getElementById('searchInput');
+            const searchToggle = document.getElementById('searchToggle');
+            const searchClear = document.getElementById('searchClear');
+
+            // ================================================================
+            // FILE SYSTEM ACCESS API – Scan folder recursively
+            // ================================================================
+            async function scanDirectory(dirHandle, path = '') {
+                const movies = [];
+                const entries = [];
+
+                try {
+                    for await (const entry of dirHandle.values()) {
+                        entries.push(entry);
+                    }
+                } catch (err) {
+                    console.warn('Error reading directory:', err);
+                    return movies;
                 }
-                result.sort((a, b) => a.folderName.localeCompare(b.folderName));
-                return result;
+
+                for (const entry of entries) {
+                    const entryPath = path ? `${path}/${entry.name}` : entry.name;
+                    if (entry.kind === 'file') {
+                        const ext = entry.name.split('.').pop().toLowerCase();
+                        if (VIDEO_EXTS.has(ext)) {
+                            // Found a video file – treat the parent folder as the movie
+                            const folderName = path.split('/').pop() || entryPath;
+                            movies.push({
+                                folderName: folderName || 'Untitled',
+                                videoName: entry.name,
+                                videoHandle: entry,
+                                path: entryPath,
+                                // derive a poster seed from the folder name
+                                posterSeed: folderName.replace(/\s/g, '').toLowerCase() || 'movie'
+                            });
+                        }
+                    } else if (entry.kind === 'directory') {
+                        // Recurse into subdirectory
+                        const subMovies = await scanDirectory(entry, entryPath);
+                        movies.push(...subMovies);
+                    }
+                }
+
+                return movies;
             }
 
             // ================================================================
-            // 3. BUILD VIDEO PATH
+            // LOAD FROM FOLDER
             // ================================================================
-            function getVideoPath(folderName, videoFile) {
-                // Assumes your videos are served from the `/videos/` directory
-                // e.g. /videos/Neon%20Dreamscape/neon_dreamscape.mp4
-                return `videos/${encodeURIComponent(folderName)}/${encodeURIComponent(videoFile)}`;
+            async function loadFromFolder(handle) {
+                if (isScanning) return;
+                isScanning = true;
+                selectFolderBtn.disabled = true;
+                selectFolderBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Scanning...';
+
+                try {
+                    const movies = await scanDirectory(handle, handle.name);
+                    if (movies.length === 0) {
+                        // No videos found – try scanning one level deeper?
+                        // Some users might have videos directly in subfolders, which we already handle.
+                        // But if the user selected a folder that contains subfolders with videos,
+                        // our recursive scan already handles that.
+                        allMovies = [];
+                        renderRows('');
+                        showEmptyState('No video files found', 'Make sure your folders contain video files (MP4, MKV, AVI, MOV, etc.)');
+                        folderPathDisplay.textContent = handle.name + ' (no videos found)';
+                        return;
+                    }
+
+                    // Sort by folder name
+                    movies.sort((a, b) => a.folderName.localeCompare(b.folderName));
+
+                    // Deduplicate by folder name (keep first video per folder)
+                    const unique = new Map();
+                    for (const m of movies) {
+                        if (!unique.has(m.folderName)) {
+                            unique.set(m.folderName, m);
+                        }
+                    }
+                    allMovies = Array.from(unique.values());
+
+                    folderPathDisplay.textContent = handle.name + ` (${allMovies.length} movies)`;
+                    renderRows(searchQuery);
+
+                } catch (err) {
+                    console.error('Error scanning folder:', err);
+                    showEmptyState('Error scanning folder', err.message || 'Please try again.');
+                } finally {
+                    isScanning = false;
+                    selectFolderBtn.disabled = false;
+                    selectFolderBtn.innerHTML = '<i class="fas fa-folder"></i> Select Folder';
+                }
             }
 
             // ================================================================
-            // 4. RENDER ROWS
+            // RENDER
             // ================================================================
             function renderRows(query = '') {
-                const container = document.getElementById('rowsContainer');
-                const navBadge = document.getElementById('navFolderCount');
+                const container = rowsContainer;
+                navBadge.textContent = allMovies.length;
 
-                allFolders = scanLocalFolders();
-                navBadge.textContent = allFolders.length;
-
-                let filteredFolders = allFolders;
+                let filtered = allMovies;
                 if (query.trim() !== '') {
                     const q = query.toLowerCase().trim();
-                    filteredFolders = allFolders.filter(f =>
-                        f.folderName.toLowerCase().includes(q) ||
-                        f.description.toLowerCase().includes(q) ||
-                        f.videoFile.toLowerCase().includes(q)
+                    filtered = allMovies.filter(m =>
+                        m.folderName.toLowerCase().includes(q) ||
+                        m.videoName.toLowerCase().includes(q)
                     );
                 }
 
-                if (allFolders.length === 0) {
-                    container.innerHTML = `
-                        <div class="empty-state">
-                            <i class="fas fa-folder-open"></i>
-                            <p style="font-size:1.2rem;">No local folders detected</p>
-                            <p style="opacity:0.5;font-size:0.9rem;">
-                                Add folders inside <code style="background:#2a2a2a;padding:0.1rem 0.6rem;border-radius:4px;">/videos/</code>
-                                and define them in <code style="background:#2a2a2a;padding:0.1rem 0.6rem;border-radius:4px;">virtualFileSystem</code>.
-                            </p>
-                        </div>
-                    `;
+                if (allMovies.length === 0) {
+                    showEmptyState('No movies loaded', 'Click "Select Folder" to choose your videos directory.');
                     return;
                 }
 
-                // Hero: first filtered folder
-                const featured = filteredFolders.length > 0 ? filteredFolders[0] : allFolders[0];
+                // Update hero with first filtered movie
+                const featured = filtered.length > 0 ? filtered[0] : allMovies[0];
                 updateHero(featured);
 
                 let html = '';
 
-                // ---- Search results row ----
+                // ---- Search results ----
                 if (query.trim() !== '') {
                     html += `
                         <div class="row search-results-row active">
@@ -1068,30 +1135,29 @@
                                 <div class="row-title">
                                     <i class="fas fa-search"></i> Search Results
                                     <span style="font-size:0.9rem;font-weight:400;color:#8a8a8a;margin-left:8px;">
-                                        (${filteredFolders.length} found)
+                                        (${filtered.length} found)
                                     </span>
                                 </div>
                             </div>
                             <div class="movie-scroll">
                     `;
-                    if (filteredFolders.length === 0) {
+                    if (filtered.length === 0) {
                         html += `
                             <div class="no-results">
                                 <i class="fas fa-film"></i>
                                 <p style="font-size:1.1rem;">No movies found matching "<strong>${query}</strong>"</p>
-                                <p style="opacity:0.5;font-size:0.9rem;margin-top:0.5rem;">Try a different search term</p>
                             </div>
                         `;
                     } else {
-                        filteredFolders.forEach(f => { html += createMovieCardHTML(f); });
+                        filtered.forEach(m => { html += createCardHTML(m); });
                     }
                     html += `</div></div>`;
                 }
 
                 const hiddenClass = query.trim() !== '' ? 'hidden' : '';
 
-                // ---- Trending Now ----
-                const trending = allFolders.slice(0, 6);
+                // ---- Trending (first 6) ----
+                const trending = allMovies.slice(0, 6);
                 if (trending.length) {
                     html += `
                         <div class="row ${hiddenClass}">
@@ -1100,14 +1166,14 @@
                                 <div class="row-view-all">View All <i class="fas fa-chevron-right"></i></div>
                             </div>
                             <div class="movie-scroll">
-                                ${trending.map(f => createMovieCardHTML(f)).join('')}
+                                ${trending.map(m => createCardHTML(m)).join('')}
                             </div>
                         </div>
                     `;
                 }
 
-                // ---- Popular ----
-                const popular = allFolders.slice(6, 12);
+                // ---- Popular (next 6) ----
+                const popular = allMovies.slice(6, 12);
                 if (popular.length) {
                     html += `
                         <div class="row ${hiddenClass}">
@@ -1116,14 +1182,14 @@
                                 <div class="row-view-all">View All <i class="fas fa-chevron-right"></i></div>
                             </div>
                             <div class="movie-scroll">
-                                ${popular.map(f => createMovieCardHTML(f)).join('')}
+                                ${popular.map(m => createCardHTML(m)).join('')}
                             </div>
                         </div>
                     `;
                 }
 
                 // ---- Continue Watching (shuffle) ----
-                const shuffled = [...allFolders].sort(() => Math.random() - 0.5).slice(0, 6);
+                const shuffled = [...allMovies].sort(() => Math.random() - 0.5).slice(0, 6);
                 if (shuffled.length) {
                     html += `
                         <div class="row ${hiddenClass}">
@@ -1132,7 +1198,7 @@
                                 <div class="row-view-all">View All <i class="fas fa-chevron-right"></i></div>
                             </div>
                             <div class="movie-scroll">
-                                ${shuffled.map(f => createMovieCardHTML(f)).join('')}
+                                ${shuffled.map(m => createCardHTML(m)).join('')}
                             </div>
                         </div>
                     `;
@@ -1140,76 +1206,65 @@
 
                 container.innerHTML = html;
 
-                // ---- Attach click events to cards and play buttons ----
+                // ---- Attach events ----
                 document.querySelectorAll('.movie-card').forEach(card => {
                     const folderName = card.dataset.folder;
-                    // Click on card → update hero
+                    const movie = allMovies.find(m => m.folderName === folderName);
+                    if (!movie) return;
+
                     card.addEventListener('click', function(e) {
-                        // Ignore if click was on the play button (handled separately)
                         if (e.target.closest('.play-btn')) return;
-                        const folder = allFolders.find(f => f.folderName === folderName);
-                        if (folder) {
-                            updateHero(folder);
-                            window.scrollTo({ top: 0, behavior: 'smooth' });
-                        }
+                        updateHero(movie);
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
                     });
-                    // Play button inside card → open modal
+
                     const playBtn = card.querySelector('.play-btn');
                     if (playBtn) {
                         playBtn.addEventListener('click', function(e) {
                             e.stopPropagation();
-                            const folder = allFolders.find(f => f.folderName === folderName);
-                            if (folder) openVideoModal(folder);
+                            openVideoModal(movie);
                         });
                     }
                 });
 
-                // ---- Hero Play button ----
-                const heroPlay = document.getElementById('heroPlayBtn');
-                heroPlay.onclick = function() {
-                    const featuredNow = filteredFolders.length > 0 ? filteredFolders[0] : allFolders[0];
-                    if (featuredNow) openVideoModal(featuredNow);
+                // Hero play button
+                heroPlayBtn.onclick = function() {
+                    const f = filtered.length > 0 ? filtered[0] : allMovies[0];
+                    if (f) openVideoModal(f);
                 };
             }
 
             // ================================================================
-            // 5. CREATE MOVIE CARD HTML
+            // CREATE CARD HTML
             // ================================================================
-            function createMovieCardHTML(folder) {
-                const videoPath = getVideoPath(folder.folderName, folder.videoFile);
-                // Use video element as thumbnail (shows first frame via preload=metadata)
-                // Fallback: if video fails, show a poster image from picsum
-                const posterUrl =
-                    `https://picsum.photos/seed/${folder.posterSeed}/400/225`;
+            function createCardHTML(movie) {
+                // We'll use a video element with the object URL
+                // But we need to create a URL for the video file.
+                // However, we can't create a URL from a FileSystemFileHandle directly
+                // without reading the file. We'll create it when the user plays it.
+                // For the thumbnail, we'll use a poster image from picsum.
+                const posterUrl = `https://picsum.photos/seed/${movie.posterSeed || movie.folderName.replace(/\s/g, '')}/400/225`;
 
                 return `
-                    <div class="movie-card" data-folder="${folder.folderName}">
+                    <div class="movie-card" data-folder="${movie.folderName}">
                         <div class="thumbnail">
-                            <video
-                                src="${videoPath}"
-                                muted
-                                preload="metadata"
-                                playsinline
-                                poster="${posterUrl}"
-                                onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
-                            ></video>
+                            <img src="${posterUrl}" alt="${movie.folderName}" loading="lazy"
+                                 style="width:100%;height:100%;object-fit:cover;display:block;background:#0a0a0a;"
+                                 onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"
+                            />
                             <div class="poster-fallback" style="display:none;position:absolute;inset:0;">
                                 <i class="fas fa-film"></i>
-                                <span>${folder.folderName}</span>
+                                <span>${movie.folderName}</span>
                             </div>
-                            <div class="badge-top"><i class="fas fa-play-circle"></i> ${folder.quality}</div>
+                            <div class="badge-top"><i class="fas fa-play-circle"></i> Local</div>
                             <div class="card-hover">
                                 <button class="play-btn"><i class="fas fa-play"></i></button>
                             </div>
                         </div>
                         <div class="card-info">
-                            <div class="title">${folder.folderName}</div>
+                            <div class="title">${movie.folderName}</div>
                             <div class="meta">
-                                <span>${folder.year}</span>
-                                <span>•</span>
-                                <span>${folder.maturity}</span>
-                                <span>•</span>
-                                <span><i class="fas fa-file-video"></i> ${folder.videoFile}</span>
+                                <span><i class="fas fa-file-video"></i> ${movie.videoName}</span>
                             </div>
                         </div>
                     </div>
@@ -1217,65 +1272,78 @@
             }
 
             // ================================================================
-            // 6. HERO UPDATE
+            // UPDATE HERO
             // ================================================================
-            function updateHero(folder) {
-                if (!folder) return;
-                document.getElementById('heroTitle').textContent = folder.folderName;
-                document.getElementById('heroDesc').textContent = folder.description || 'No description available.';
-                document.getElementById('heroQuality').textContent = folder.quality || 'HD';
-                document.getElementById('heroFile').textContent = folder.videoFile || 'video.mp4';
-                document.getElementById('heroFolder').textContent = folder.folderName;
-                const backdrop = document.getElementById('heroBackdrop');
-                backdrop.style.backgroundImage =
-                    `url('https://picsum.photos/seed/${folder.posterSeed}/1920/1080')`;
+            function updateHero(movie) {
+                heroTitle.textContent = movie.folderName;
+                heroDesc.textContent = `📁 ${movie.path || movie.folderName}`;
+                heroFolder.textContent = movie.folderName;
+                heroFile.textContent = movie.videoName;
+                heroQuality.textContent = 'Local File';
+                heroBackdrop.style.backgroundImage =
+                    `url('https://picsum.photos/seed/${movie.posterSeed || movie.folderName.replace(/\s/g, '')}/1920/1080')`;
+                heroPlayBtn.disabled = false;
             }
 
             // ================================================================
-            // 7. VIDEO MODAL
+            // VIDEO MODAL
             // ================================================================
-            function openVideoModal(folder) {
-                const modal = document.getElementById('videoModal');
-                const video = document.getElementById('modalVideo');
-                const title = document.getElementById('modalTitle');
-                const folderEl = document.getElementById('modalFolder');
-                const fileEl = document.getElementById('modalFile');
-                const qualityEl = document.getElementById('modalQuality');
+            async function openVideoModal(movie) {
+                try {
+                    // Read the file as a blob and create a URL
+                    const file = await movie.videoHandle.getFile();
+                    const url = URL.createObjectURL(file);
 
-                const videoPath = getVideoPath(folder.folderName, folder.videoFile);
+                    modalVideo.src = url;
+                    modalVideo.load();
+                    modalTitle.textContent = movie.folderName;
+                    modalFolder.textContent = movie.folderName;
+                    modalFile.textContent = movie.videoName;
+                    modalQuality.textContent = 'Local File';
 
-                video.src = videoPath;
-                video.load();
-                title.textContent = folder.folderName;
-                folderEl.textContent = folder.folderName;
-                fileEl.textContent = folder.videoFile;
-                qualityEl.textContent = folder.quality || 'HD';
-
-                modal.classList.add('active');
-                document.body.style.overflow = 'hidden';
+                    videoModal.classList.add('active');
+                    document.body.style.overflow = 'hidden';
+                } catch (err) {
+                    console.error('Error playing video:', err);
+                    alert('Could not play this video. Error: ' + err.message);
+                }
             }
 
             function closeVideoModal() {
-                const modal = document.getElementById('videoModal');
-                const video = document.getElementById('modalVideo');
-                modal.classList.remove('active');
-                video.pause();
-                video.src = '';
-                video.load();
+                videoModal.classList.remove('active');
+                if (modalVideo.src) {
+                    modalVideo.pause();
+                    URL.revokeObjectURL(modalVideo.src);
+                    modalVideo.src = '';
+                    modalVideo.load();
+                }
                 document.body.style.overflow = '';
             }
 
-            // ---- Modal close events ----
-            document.getElementById('videoModalClose').addEventListener('click', closeVideoModal);
-            document.getElementById('videoModal').addEventListener('click', function(e) {
-                if (e.target === this) closeVideoModal();
-            });
-            document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape') closeVideoModal();
-            });
+            // ================================================================
+            // EMPTY STATE
+            // ================================================================
+            function showEmptyState(title, message) {
+                rowsContainer.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-folder-open"></i>
+                        <p style="font-size:1.2rem;">${title}</p>
+                        <p class="hint">${message}</p>
+                    </div>
+                `;
+                // Reset hero
+                heroTitle.textContent = 'No videos loaded';
+                heroDesc.textContent = 'Click "Select Folder" to choose your videos directory.';
+                heroFolder.textContent = '—';
+                heroFile.textContent = '—';
+                heroQuality.textContent = '—';
+                heroPlayBtn.disabled = true;
+                heroBackdrop.style.backgroundImage = 'url(\'https://picsum.photos/seed/empty/1920/1080\')';
+                navBadge.textContent = '0';
+            }
 
             // ================================================================
-            // 8. SEARCH
+            // SEARCH
             // ================================================================
             function handleSearch(query) {
                 searchQuery = query;
@@ -1287,7 +1355,47 @@
             }
 
             // ================================================================
-            // 9. NAVBAR SCROLL
+            // FOLDER SELECTION
+            // ================================================================
+            async function selectFolder() {
+                if (!window.showDirectoryPicker) {
+                    alert('Your browser does not support the File System Access API.\n\n' +
+                        'Please use Google Chrome or Microsoft Edge to use this feature.\n\n' +
+                        'Alternatively, you can manually define your videos in the code.');
+                    return;
+                }
+
+                try {
+                    const handle = await window.showDirectoryPicker({ mode: 'read' });
+                    folderHandle = handle;
+                    // Save to sessionStorage for persistence
+                    try {
+                        sessionStorage.setItem('cinevault_folder', handle.name);
+                    } catch (e) { /* ignore */ }
+                    await loadFromFolder(handle);
+                } catch (err) {
+                    if (err.name !== 'AbortError' && err.name !== 'SecurityError') {
+                        console.error('Folder selection error:', err);
+                        alert('Error selecting folder: ' + err.message);
+                    }
+                }
+            }
+
+            function resetFolder() {
+                folderHandle = null;
+                allMovies = [];
+                searchQuery = '';
+                searchInput.value = '';
+                searchInput.classList.remove('active');
+                folderPathDisplay.textContent = 'Not selected';
+                showEmptyState('No movies loaded', 'Click "Select Folder" to choose your videos directory.');
+                try {
+                    sessionStorage.removeItem('cinevault_folder');
+                } catch (e) { /* ignore */ }
+            }
+
+            // ================================================================
+            // NAVBAR SCROLL
             // ================================================================
             function handleNavbar() {
                 const navbar = document.getElementById('navbar');
@@ -1295,16 +1403,18 @@
             }
 
             // ================================================================
-            // 10. INIT
+            // INIT
             // ================================================================
             document.addEventListener('DOMContentLoaded', function() {
-                renderRows('');
+                // Show initial empty state
+                showEmptyState('No movies loaded', 'Click "Select Folder" to choose your videos directory.');
                 handleNavbar();
 
-                const searchToggle = document.getElementById('searchToggle');
-                const searchInput = document.getElementById('searchInput');
-                const searchClear = document.getElementById('searchClear');
+                // ---- Folder buttons ----
+                selectFolderBtn.addEventListener('click', selectFolder);
+                resetFolderBtn.addEventListener('click', resetFolder);
 
+                // ---- Search ----
                 searchToggle.addEventListener('click', function(e) {
                     e.stopPropagation();
                     searchInput.classList.toggle('active');
@@ -1343,12 +1453,24 @@
                     }
                 });
 
+                // ---- Modal close ----
+                modalClose.addEventListener('click', closeVideoModal);
+                videoModal.addEventListener('click', function(e) {
+                    if (e.target === this) closeVideoModal();
+                });
+                document.addEventListener('keydown', function(e) {
+                    if (e.key === 'Escape') closeVideoModal();
+                });
+
+                // ---- Scroll ----
                 window.addEventListener('scroll', handleNavbar);
 
-                // Re-scan every 15s to simulate live updates
-                setInterval(() => {
-                    renderRows(searchQuery);
-                }, 15000);
+                // ---- Auto-load if folder was previously selected (via session) ----
+                // Not doing auto-load because we can't persist the handle across sessions.
+                // User must click the button each time.
+                // But we can show a helpful message.
+
+                console.log('CineVault ready. Click "Select Folder" to load your videos.');
             });
 
         })();
