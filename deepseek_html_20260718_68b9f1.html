@@ -1,0 +1,1175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>🎬 CineVault · Netflix-style with Search</title>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #141414;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        /* ===== NAVBAR ===== */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            padding: 0.8rem 4%;
+            background: linear-gradient(180deg, rgba(0, 0, 0, 0.95) 0%, rgba(0, 0, 0, 0.7) 60%, transparent 100%);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.3s ease;
+            flex-wrap: wrap;
+            gap: 0.8rem;
+        }
+
+        .navbar.scrolled {
+            background: rgba(20, 20, 20, 0.98);
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.8);
+        }
+
+        .nav-left {
+            display: flex;
+            align-items: center;
+            gap: 2.5rem;
+            flex-wrap: wrap;
+        }
+
+        .nav-logo {
+            font-weight: 800;
+            font-size: 1.8rem;
+            letter-spacing: -0.5px;
+            background: linear-gradient(135deg, #f7c948 0%, #f5b642 40%, #e09600 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 0 40px rgba(245, 182, 66, 0.2);
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .nav-logo:hover {
+            transform: scale(1.02);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 1.5rem;
+            list-style: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .nav-links li {
+            cursor: pointer;
+            color: #b3b3b3;
+            transition: color 0.2s ease;
+        }
+
+        .nav-links li:hover,
+        .nav-links li.active {
+            color: #fff;
+        }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 1.2rem;
+            flex-wrap: wrap;
+        }
+
+        /* ===== SEARCH BAR ===== */
+        .search-container {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .search-input {
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 30px;
+            padding: 0.4rem 1rem 0.4rem 2.5rem;
+            color: #fff;
+            font-size: 0.9rem;
+            width: 0;
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.2, 0.9, 0.4, 1);
+            outline: none;
+            font-family: inherit;
+        }
+
+        .search-input.active {
+            width: 220px;
+            opacity: 1;
+            padding: 0.4rem 1rem 0.4rem 2.5rem;
+            border-color: rgba(255, 215, 150, 0.3);
+            background: rgba(0, 0, 0, 0.8);
+        }
+
+        .search-input:focus {
+            border-color: #f5b642;
+            box-shadow: 0 0 20px rgba(245, 182, 66, 0.1);
+        }
+
+        .search-input::placeholder {
+            color: #8a8a8a;
+            font-weight: 300;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 10px;
+            color: #8a8a8a;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: color 0.2s ease;
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        .search-container:hover .search-icon {
+            color: #fff;
+        }
+
+        .search-container .search-toggle {
+            background: none;
+            border: none;
+            color: #b3b3b3;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: color 0.2s ease;
+            padding: 0.2rem;
+        }
+
+        .search-container .search-toggle:hover {
+            color: #fff;
+        }
+
+        .search-clear {
+            position: absolute;
+            right: 10px;
+            color: #8a8a8a;
+            font-size: 0.8rem;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            background: none;
+            border: none;
+            padding: 0.2rem;
+        }
+
+        .search-clear.visible {
+            opacity: 1;
+        }
+
+        .search-clear:hover {
+            color: #fff;
+        }
+
+        .nav-right i:not(.search-toggle) {
+            font-size: 1.2rem;
+            color: #b3b3b3;
+            cursor: pointer;
+            transition: color 0.2s ease;
+        }
+
+        .nav-right i:not(.search-toggle):hover {
+            color: #fff;
+        }
+
+        .nav-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 4px;
+            background: linear-gradient(135deg, #f5b642, #d4890a);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.9rem;
+            color: #141414;
+            cursor: pointer;
+        }
+
+        .nav-badge {
+            background: rgba(255, 215, 150, 0.1);
+            border: 1px solid rgba(255, 215, 150, 0.1);
+            padding: 0.25rem 0.9rem;
+            border-radius: 30px;
+            font-size: 0.7rem;
+            color: #d4c9b0;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 400;
+        }
+
+        .nav-badge i {
+            color: #f5b642;
+            font-size: 0.7rem;
+        }
+
+        /* ===== HERO ===== */
+        .hero {
+            position: relative;
+            width: 100%;
+            height: 85vh;
+            min-height: 500px;
+            background: linear-gradient(135deg, #0a0e14 0%, #1a1a2e 50%, #0a0e14 100%);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            padding: 0 4%;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse at 70% 50%, rgba(245, 182, 66, 0.08) 0%, transparent 60%),
+                radial-gradient(ellipse at 30% 80%, rgba(100, 200, 255, 0.04) 0%, transparent 50%);
+            pointer-events: none;
+        }
+
+        .hero-backdrop {
+            position: absolute;
+            inset: 0;
+            background: url('https://picsum.photos/seed/hero/1920/1080') center/cover no-repeat;
+            opacity: 0.15;
+            filter: blur(2px) brightness(0.6);
+            transition: background-image 0.6s ease;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            max-width: 600px;
+        }
+
+        .hero-badge {
+            display: inline-block;
+            background: rgba(245, 182, 66, 0.15);
+            border: 1px solid rgba(245, 182, 66, 0.2);
+            padding: 0.3rem 1.2rem;
+            border-radius: 30px;
+            font-size: 0.75rem;
+            color: #f5b642;
+            margin-bottom: 1.2rem;
+            letter-spacing: 0.5px;
+        }
+
+        .hero-title {
+            font-size: 4.5rem;
+            font-weight: 800;
+            line-height: 1.1;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #fff 0%, #f0e6d0 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .hero-desc {
+            font-size: 1.1rem;
+            color: #b3b3b3;
+            line-height: 1.6;
+            max-width: 500px;
+            margin-bottom: 1.8rem;
+            opacity: 0.9;
+        }
+
+        .hero-meta {
+            display: flex;
+            gap: 1.5rem;
+            font-size: 0.9rem;
+            color: #8a8a8a;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .hero-meta span {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .hero-meta i {
+            color: #f5b642;
+            font-size: 0.8rem;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .btn-primary {
+            background: #fff;
+            color: #141414;
+            border: none;
+            padding: 0.7rem 2.2rem;
+            border-radius: 4px;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary:hover {
+            background: rgba(255, 255, 255, 0.85);
+            transform: scale(1.02);
+        }
+
+        .btn-secondary {
+            background: rgba(109, 109, 110, 0.4);
+            color: #fff;
+            border: none;
+            padding: 0.7rem 2.2rem;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.2s ease;
+            backdrop-filter: blur(4px);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(109, 109, 110, 0.6);
+        }
+
+        /* ===== ROWS ===== */
+        .rows-container {
+            padding: 0 4% 3rem;
+            position: relative;
+            z-index: 2;
+            margin-top: -4rem;
+        }
+
+        .row {
+            margin-bottom: 2.8rem;
+        }
+
+        .row-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            padding: 0 0.5rem;
+        }
+
+        .row-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+            color: #e5e5e5;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .row-title i {
+            color: #f5b642;
+            font-size: 1.2rem;
+            opacity: 0.7;
+        }
+
+        .row-view-all {
+            font-size: 0.85rem;
+            color: #b3b3b3;
+            cursor: pointer;
+            transition: color 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .row-view-all:hover {
+            color: #fff;
+        }
+
+        .movie-scroll {
+            display: flex;
+            gap: 1rem;
+            overflow-x: auto;
+            padding: 0.5rem 0.3rem 1.5rem;
+            scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .movie-scroll::-webkit-scrollbar {
+            height: 4px;
+            background: transparent;
+        }
+
+        .movie-scroll::-webkit-scrollbar-thumb {
+            background: #f5b642;
+            border-radius: 10px;
+        }
+
+        .movie-scroll::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 10px;
+        }
+
+        /* ===== MOVIE CARD ===== */
+        .movie-card {
+            flex: 0 0 220px;
+            min-width: 200px;
+            border-radius: 6px;
+            overflow: hidden;
+            background: #1a1a1a;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.2, 0.9, 0.4, 1);
+            position: relative;
+            border: 2px solid transparent;
+        }
+
+        .movie-card:hover {
+            transform: scale(1.08);
+            z-index: 10;
+            border-color: rgba(255, 255, 255, 0.1);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8);
+        }
+
+        .movie-card .thumbnail {
+            position: relative;
+            aspect-ratio: 16 / 9;
+            width: 100%;
+            background: #0a0a0a;
+            overflow: hidden;
+        }
+
+        .movie-card .thumbnail img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.4s ease;
+        }
+
+        .movie-card:hover .thumbnail img {
+            transform: scale(1.02);
+        }
+
+        .movie-card .card-hover {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 1.5rem 1rem 1rem;
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.95) 0%, transparent 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+
+        .movie-card:hover .card-hover {
+            opacity: 1;
+        }
+
+        .movie-card .card-hover .play-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #fff;
+            color: #141414;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-bottom: 0.5rem;
+        }
+
+        .movie-card .card-hover .play-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .movie-card .card-info {
+            padding: 0.7rem 0.5rem 0.5rem;
+            background: #1a1a1a;
+        }
+
+        .movie-card .card-info .title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #e5e5e5;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .movie-card .card-info .meta {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.7rem;
+            color: #8a8a8a;
+            margin-top: 4px;
+            flex-wrap: wrap;
+        }
+
+        .movie-card .card-info .meta i {
+            color: #f5b642;
+            font-size: 0.6rem;
+        }
+
+        .movie-card .badge-top {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(4px);
+            padding: 0.15rem 0.7rem;
+            border-radius: 20px;
+            font-size: 0.6rem;
+            color: #b3b3b3;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            z-index: 2;
+            font-weight: 500;
+        }
+
+        .movie-card .badge-top i {
+            color: #f5b642;
+            font-size: 0.55rem;
+            margin-right: 4px;
+        }
+
+        /* ===== SEARCH RESULTS ROW ===== */
+        .search-results-row {
+            display: none;
+        }
+
+        .search-results-row.active {
+            display: block;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 3rem 2rem;
+            color: #6a6a6a;
+            width: 100%;
+        }
+
+        .no-results i {
+            font-size: 2.5rem;
+            color: #f5b642;
+            opacity: 0.3;
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 2.8rem;
+            }
+            .hero {
+                height: 70vh;
+                min-height: 400px;
+            }
+            .movie-card {
+                flex: 0 0 160px;
+                min-width: 150px;
+            }
+            .nav-links {
+                display: none;
+            }
+            .navbar {
+                padding: 0.6rem 4%;
+            }
+            .nav-logo {
+                font-size: 1.4rem;
+            }
+            .search-input.active {
+                width: 160px;
+            }
+            .hero-buttons .btn-primary,
+            .hero-buttons .btn-secondary {
+                padding: 0.5rem 1.5rem;
+                font-size: 0.85rem;
+            }
+            .row-title {
+                font-size: 1.2rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .hero-title {
+                font-size: 2rem;
+            }
+            .hero-desc {
+                font-size: 0.9rem;
+            }
+            .movie-card {
+                flex: 0 0 140px;
+                min-width: 130px;
+            }
+            .hero-meta {
+                flex-wrap: wrap;
+                gap: 0.8rem;
+                font-size: 0.8rem;
+            }
+            .rows-container {
+                padding: 0 2% 2rem;
+                margin-top: -2rem;
+            }
+            .search-input.active {
+                width: 120px;
+                font-size: 0.8rem;
+            }
+            .nav-right {
+                gap: 0.8rem;
+            }
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+            background: #141414;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #f5b642;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1a1a1a;
+        }
+
+        .empty-state {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 4rem 2rem;
+            color: #6a6a6a;
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            color: #f5b642;
+            opacity: 0.3;
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        /* row hidden state */
+        .row.hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ===== NAVBAR ===== -->
+    <nav class="navbar" id="navbar">
+        <div class="nav-left">
+            <div class="nav-logo">CineVault</div>
+            <ul class="nav-links">
+                <li class="active" data-filter="all">Home</li>
+                <li data-filter="all">TV Shows</li>
+                <li data-filter="all">Movies</li>
+                <li data-filter="all">New & Popular</li>
+                <li data-filter="all">My List</li>
+            </ul>
+        </div>
+        <div class="nav-right">
+            <div class="search-container">
+                <button class="search-toggle" id="searchToggle" aria-label="Toggle search">
+                    <i class="fas fa-search"></i>
+                </button>
+                <input type="text" class="search-input" id="searchInput" placeholder="Search movies..." />
+                <i class="fas fa-search search-icon"></i>
+                <button class="search-clear" id="searchClear" aria-label="Clear search">✕</button>
+            </div>
+            <i class="fas fa-bell"></i>
+            <div class="nav-avatar">C</div>
+            <div class="nav-badge">
+                <i class="fas fa-folder-open"></i>
+                <span id="navFolderCount">0</span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ===== HERO ===== -->
+    <section class="hero" id="heroBanner">
+        <div class="hero-backdrop" id="heroBackdrop"></div>
+        <div class="hero-content">
+            <div class="hero-badge"><i class="fas fa-star" style="margin-right:6px;"></i> Trending Now · Local Library</div>
+            <h1 class="hero-title" id="heroTitle">Neon Dreamscape</h1>
+            <p class="hero-desc" id="heroDesc">A cyberpunk thriller where memories are traded on the black market.</p>
+            <div class="hero-meta">
+                <span><i class="fas fa-video"></i> <span id="heroQuality">4K · HDR</span></span>
+                <span><i class="fas fa-file-video"></i> <span id="heroFile">neon_dreamscape.mp4</span></span>
+                <span><i class="fas fa-folder"></i> <span id="heroFolder">Neon Dreamscape</span></span>
+            </div>
+            <div class="hero-buttons">
+                <button class="btn-primary"><i class="fas fa-play"></i> Play</button>
+                <button class="btn-secondary"><i class="fas fa-plus"></i> My List</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== ROWS ===== -->
+    <div class="rows-container" id="rowsContainer">
+        <!-- rows injected by JS -->
+    </div>
+
+    <script>
+        (function() {
+            "use strict";
+
+            // ================================================================
+            // 1. VIRTUAL FILE SYSTEM – local folders with metadata
+            // ================================================================
+            const virtualFileSystem = {
+                'Neon Dreamscape': {
+                    desc: 'A cyberpunk thriller where memories are traded on the black market.',
+                    poster: 'neon',
+                    video: 'neon_dreamscape.mp4',
+                    quality: '4K · HDR',
+                    year: '2024',
+                    maturity: '16+'
+                },
+                'Aurora Echo': {
+                    desc: 'A poetic journey through the northern lights, captured in 8K.',
+                    poster: 'aurora',
+                    video: 'aurora_echo.mkv',
+                    quality: '8K · Dolby Vision',
+                    year: '2023',
+                    maturity: 'PG'
+                },
+                'Velocity Drift': {
+                    desc: 'Underground racing with AI‑driven hypercars. Adrenaline overload.',
+                    poster: 'velocity',
+                    video: 'drift_race.mp4',
+                    quality: '4K · 60fps',
+                    year: '2024',
+                    maturity: '18+'
+                },
+                'Moonlit Noir': {
+                    desc: 'A detective story set in a rain‑soaked futuristic Tokyo.',
+                    poster: 'moonlit',
+                    video: 'noir_moon.avi',
+                    quality: 'HD · 5.1 Surround',
+                    year: '2022',
+                    maturity: '15+'
+                },
+                'Arcadia Wilds': {
+                    desc: 'Nature documentary with never‑seen footage of rare wildlife.',
+                    poster: 'arcadia',
+                    video: 'wild_arcadia.mov',
+                    quality: '4K · HDR10+',
+                    year: '2024',
+                    maturity: 'PG'
+                },
+                'Ghost Signal': {
+                    desc: 'A sci‑fi horror about a deep‑space transmission from 1977.',
+                    poster: 'ghost',
+                    video: 'ghost_signal.mp4',
+                    quality: '1080p · DTS-HD',
+                    year: '2023',
+                    maturity: '18+'
+                },
+                'Stellar Odyssey': {
+                    desc: 'An epic space exploration across uncharted galaxies.',
+                    poster: 'stellar',
+                    video: 'stellar_odyssey.mp4',
+                    quality: '8K · Dolby Atmos',
+                    year: '2024',
+                    maturity: '12+'
+                },
+                'Crimson Tide': {
+                    desc: 'Naval thriller set during a global maritime crisis.',
+                    poster: 'crimson',
+                    video: 'crimson_tide.mkv',
+                    quality: '4K · 5.1',
+                    year: '2023',
+                    maturity: '16+'
+                },
+                'Digital Frontier': {
+                    desc: 'A hacker fights against a corrupt AI-controlled megacorporation.',
+                    poster: 'digital',
+                    video: 'digital_frontier.mp4',
+                    quality: '4K · HDR',
+                    year: '2024',
+                    maturity: '18+'
+                },
+                'Eternal Garden': {
+                    desc: 'A fantasy romance set in a magical floating garden.',
+                    poster: 'garden',
+                    video: 'eternal_garden.mkv',
+                    quality: 'HD · 5.1',
+                    year: '2023',
+                    maturity: '12+'
+                },
+                'Shadow Protocol': {
+                    desc: 'Covert ops and political intrigue in a divided future.',
+                    poster: 'shadow',
+                    video: 'shadow_protocol.mp4',
+                    quality: '4K · Dolby Atmos',
+                    year: '2024',
+                    maturity: '16+'
+                },
+                'Ocean Depths': {
+                    desc: 'Underwater exploration reveals ancient secrets.',
+                    poster: 'ocean',
+                    video: 'ocean_depths.mov',
+                    quality: '8K · HDR',
+                    year: '2023',
+                    maturity: 'PG'
+                }
+            };
+
+            let allFolders = [];
+            let searchQuery = '';
+
+            // ================================================================
+            // 2. SCAN FUNCTION
+            // ================================================================
+            function scanLocalFolders() {
+                const folderNames = Object.keys(virtualFileSystem);
+                const result = [];
+                for (const name of folderNames) {
+                    const data = virtualFileSystem[name];
+                    result.push({
+                        folderName: name,
+                        description: data.desc,
+                        posterSeed: data.poster,
+                        videoFile: data.video,
+                        quality: data.quality || 'HD',
+                        year: data.year || '2024',
+                        maturity: data.maturity || 'PG'
+                    });
+                }
+                result.sort((a, b) => a.folderName.localeCompare(b.folderName));
+                return result;
+            }
+
+            // ================================================================
+            // 3. RENDER ROWS (with search support)
+            // ================================================================
+            function renderRows(query = '') {
+                const container = document.getElementById('rowsContainer');
+                const navBadge = document.getElementById('navFolderCount');
+
+                allFolders = scanLocalFolders();
+                navBadge.textContent = allFolders.length;
+
+                // Filter folders based on search query
+                let filteredFolders = allFolders;
+                if (query.trim() !== '') {
+                    const q = query.toLowerCase().trim();
+                    filteredFolders = allFolders.filter(f =>
+                        f.folderName.toLowerCase().includes(q) ||
+                        f.description.toLowerCase().includes(q) ||
+                        f.videoFile.toLowerCase().includes(q)
+                    );
+                }
+
+                if (allFolders.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-folder-open"></i>
+                            <p style="font-size:1.2rem;">No local folders detected</p>
+                            <p style="opacity:0.5;font-size:0.9rem;">Place folders with videos in the library directory.</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                // ---- Hero: pick first folder from filtered results ----
+                const featured = filteredFolders.length > 0 ? filteredFolders[0] : allFolders[0];
+                updateHero(featured);
+
+                // ---- Build rows ----
+                let html = '';
+
+                // Search results row (visible when searching)
+                if (query.trim() !== '') {
+                    html += `
+                        <div class="row search-results-row active">
+                            <div class="row-header">
+                                <div class="row-title">
+                                    <i class="fas fa-search"></i> Search Results
+                                    <span style="font-size:0.9rem;font-weight:400;color:#8a8a8a;margin-left:8px;">
+                                        (${filteredFolders.length} found)
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="movie-scroll">
+                    `;
+
+                    if (filteredFolders.length === 0) {
+                        html += `
+                            <div class="no-results">
+                                <i class="fas fa-film"></i>
+                                <p style="font-size:1.1rem;">No movies found matching "<strong>${query}</strong>"</p>
+                                <p style="opacity:0.5;font-size:0.9rem;margin-top:0.5rem;">Try a different search term</p>
+                            </div>
+                        `;
+                    } else {
+                        filteredFolders.forEach((folder) => {
+                            html += createMovieCardHTML(folder);
+                        });
+                    }
+
+                    html += `
+                            </div>
+                        </div>
+                    `;
+                }
+
+                // Regular rows (hidden when searching)
+                const regularRowsHidden = query.trim() !== '' ? 'hidden' : '';
+
+                // Row 1: "Trending Now" (first 6)
+                const trendingItems = allFolders.slice(0, 6);
+                if (trendingItems.length > 0) {
+                    html += `
+                        <div class="row ${regularRowsHidden}">
+                            <div class="row-header">
+                                <div class="row-title">
+                                    <i class="fas fa-fire"></i> Trending Now
+                                </div>
+                                <div class="row-view-all">
+                                    View All <i class="fas fa-chevron-right"></i>
+                                </div>
+                            </div>
+                            <div class="movie-scroll">
+                    `;
+                    trendingItems.forEach((folder) => {
+                        html += createMovieCardHTML(folder);
+                    });
+                    html += `
+                            </div>
+                        </div>
+                    `;
+                }
+
+                // Row 2: "Popular on CineVault" (next 6)
+                const popularItems = allFolders.slice(6, 12);
+                if (popularItems.length > 0) {
+                    html += `
+                        <div class="row ${regularRowsHidden}">
+                            <div class="row-header">
+                                <div class="row-title">
+                                    <i class="fas fa-chart-line"></i> Popular on CineVault
+                                </div>
+                                <div class="row-view-all">
+                                    View All <i class="fas fa-chevron-right"></i>
+                                </div>
+                            </div>
+                            <div class="movie-scroll">
+                    `;
+                    popularItems.forEach((folder) => {
+                        html += createMovieCardHTML(folder);
+                    });
+                    html += `
+                            </div>
+                        </div>
+                    `;
+                }
+
+                // Row 3: "Continue Watching" (random subset)
+                const continueItems = [...allFolders].sort(() => Math.random() - 0.5).slice(0, 6);
+                if (continueItems.length > 0) {
+                    html += `
+                        <div class="row ${regularRowsHidden}">
+                            <div class="row-header">
+                                <div class="row-title">
+                                    <i class="fas fa-clock"></i> Continue Watching
+                                </div>
+                                <div class="row-view-all">
+                                    View All <i class="fas fa-chevron-right"></i>
+                                </div>
+                            </div>
+                            <div class="movie-scroll">
+                    `;
+                    continueItems.forEach((folder) => {
+                        html += createMovieCardHTML(folder);
+                    });
+                    html += `
+                            </div>
+                        </div>
+                    `;
+                }
+
+                container.innerHTML = html;
+
+                // ---- Click on card: update hero ----
+                document.querySelectorAll('.movie-card').forEach(card => {
+                    card.addEventListener('click', function() {
+                        const folderName = this.dataset.folder;
+                        const folder = virtualFileSystem[folderName];
+                        if (!folder) return;
+                        updateHero({
+                            folderName: folderName,
+                            description: folder.desc,
+                            quality: folder.quality,
+                            videoFile: folder.video,
+                            posterSeed: folder.poster
+                        });
+                        // scroll to top
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                    });
+                });
+            }
+
+            // ================================================================
+            // 4. HELPERS
+            // ================================================================
+            function createMovieCardHTML(folder) {
+                const posterUrl =
+                    `https://picsum.photos/seed/${folder.posterSeed || folder.folderName.replace(/\s/g, '')}/400/225`;
+                return `
+                    <div class="movie-card" data-folder="${folder.folderName}">
+                        <div class="thumbnail">
+                            <img src="${posterUrl}" alt="${folder.folderName}" loading="lazy" />
+                            <div class="badge-top"><i class="fas fa-play-circle"></i> ${folder.quality}</div>
+                            <div class="card-hover">
+                                <button class="play-btn"><i class="fas fa-play"></i></button>
+                            </div>
+                        </div>
+                        <div class="card-info">
+                            <div class="title">${folder.folderName}</div>
+                            <div class="meta">
+                                <span>${folder.year}</span>
+                                <span>•</span>
+                                <span>${folder.maturity}</span>
+                                <span>•</span>
+                                <span><i class="fas fa-file-video"></i> ${folder.videoFile}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            function updateHero(folder) {
+                if (!folder) return;
+                document.getElementById('heroTitle').textContent = folder.folderName;
+                document.getElementById('heroDesc').textContent = folder.description || 'No description available.';
+                document.getElementById('heroQuality').textContent = folder.quality || 'HD';
+                document.getElementById('heroFile').textContent = folder.videoFile || 'video.mp4';
+                document.getElementById('heroFolder').textContent = folder.folderName;
+                const backdrop = document.getElementById('heroBackdrop');
+                backdrop.style.backgroundImage =
+                    `url('https://picsum.photos/seed/${folder.posterSeed || folder.folderName.replace(/\s/g, '')}/1920/1080')`;
+            }
+
+            // ================================================================
+            // 5. SEARCH FUNCTIONALITY
+            // ================================================================
+            function handleSearch(query) {
+                searchQuery = query;
+                renderRows(query);
+                // Update search input
+                const input = document.getElementById('searchInput');
+                const clearBtn = document.getElementById('searchClear');
+                if (query !== input.value) {
+                    input.value = query;
+                }
+                clearBtn.classList.toggle('visible', query.length > 0);
+            }
+
+            // ================================================================
+            // 6. NAVBAR SCROLL EFFECT
+            // ================================================================
+            function handleNavbar() {
+                const navbar = document.getElementById('navbar');
+                if (window.scrollY > 50) {
+                    navbar.classList.add('scrolled');
+                } else {
+                    navbar.classList.remove('scrolled');
+                }
+            }
+
+            // ================================================================
+            // 7. INIT
+            // ================================================================
+            document.addEventListener('DOMContentLoaded', function() {
+                renderRows('');
+                handleNavbar();
+
+                // ---- Search toggle ----
+                const searchToggle = document.getElementById('searchToggle');
+                const searchInput = document.getElementById('searchInput');
+                const searchClear = document.getElementById('searchClear');
+
+                searchToggle.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    searchInput.classList.toggle('active');
+                    if (searchInput.classList.contains('active')) {
+                        searchInput.focus();
+                    } else {
+                        searchInput.classList.remove('active');
+                        handleSearch('');
+                    }
+                });
+
+                // ---- Search input ----
+                searchInput.addEventListener('input', function() {
+                    handleSearch(this.value);
+                });
+
+                // ---- Search clear ----
+                searchClear.addEventListener('click', function() {
+                    handleSearch('');
+                    searchInput.classList.remove('active');
+                    searchInput.blur();
+                });
+
+                // ---- Close search on Escape ----
+                searchInput.addEventListener('keydown', function(e) {
+                    if (e.key === 'Escape') {
+                        handleSearch('');
+                        searchInput.classList.remove('active');
+                        searchInput.blur();
+                    }
+                });
+
+                // ---- Click outside to close ----
+                document.addEventListener('click', function(e) {
+                    const container = document.querySelector('.search-container');
+                    if (container && !container.contains(e.target)) {
+                        if (searchInput.value === '') {
+                            searchInput.classList.remove('active');
+                        }
+                    }
+                });
+
+                window.addEventListener('scroll', handleNavbar);
+
+                // Re-scan every 10s to simulate live updates
+                setInterval(() => {
+                    renderRows(searchQuery);
+                }, 10000);
+            });
+
+        })();
+    </script>
+</body>
+</html>
