@@ -336,7 +336,7 @@
             transform: none;
         }
 
-        /* ─── FOLDER PATH DISPLAY ─── */
+        /* ─── FOLDER PATH BAR ─── */
         .folder-path-bar {
             display: flex;
             align-items: center;
@@ -844,7 +844,7 @@
         <div class="hero-content">
             <div class="hero-badge"><i class="fas fa-star" style="margin-right:6px;"></i> Local Library</div>
             <h1 class="hero-title" id="heroTitle">Your Videos</h1>
-            <p class="hero-desc" id="heroDesc">Click the button below to select your videos folder.</p>
+            <p class="hero-desc" id="heroDesc">Loading your movie library…</p>
             <div class="hero-meta">
                 <span><i class="fas fa-folder"></i> <span id="heroFolder">—</span></span>
                 <span><i class="fas fa-file-video"></i> <span id="heroFile">—</span></span>
@@ -861,17 +861,13 @@
     <div class="rows-container" id="rowsContainer">
         <div class="folder-path-bar">
             <span class="label"><i class="fas fa-folder-open"></i> Folder:</span>
-            <span class="path" id="folderPathDisplay">No folder selected</span>
+            <span class="path" id="folderPathDisplay">Loading…</span>
             <button class="reset-btn" id="resetFolderBtn"><i class="fas fa-undo"></i> Reset</button>
         </div>
         <div id="movieRows">
-            <div class="empty-state">
-                <i class="fas fa-folder-open"></i>
-                <p style="font-size:1.2rem;">No movies loaded</p>
-                <p class="hint">Click <strong>"Select Videos Folder"</strong> below to choose your local videos directory.</p>
-                <button class="btn-select-folder" id="selectFolderBtn">
-                    <i class="fas fa-folder"></i> Select Videos Folder
-                </button>
+            <div class="loading-spinner" id="initialLoader">
+                <i class="fas fa-spinner"></i>
+                <span>Scanning your <code style="background:#2a2a2a;padding:0.1rem 0.6rem;border-radius:4px;">/videos/</code> folder…</span>
             </div>
         </div>
     </div>
@@ -894,8 +890,8 @@
 
     <script>
         // ================================================================
-        //  CineVault – File System Access API
-        //  Fully fixed: proper recursion, path building, grouping by folder
+        //  CineVault – Auto‑detects videos from /videos/ via API or JSON
+        //  Fallback to File System Access API if server not available
         // ================================================================
         (function() {
             "use strict";
@@ -904,6 +900,7 @@
             let allMovies = [];
             let searchQuery = '';
             let currentDirHandle = null;
+            let useManualFolder = false; // becomes true if API fails
 
             // ─── DOM REFS ───
             const movieRows = document.getElementById('movieRows');
@@ -911,6 +908,7 @@
             const folderPathDisplay = document.getElementById('folderPathDisplay');
             const selectFolderBtn = document.getElementById('selectFolderBtn');
             const resetFolderBtn = document.getElementById('resetFolderBtn');
+            const initialLoader = document.getElementById('initialLoader');
 
             const heroTitle = document.getElementById('heroTitle');
             const heroDesc = document.getElementById('heroDesc');
@@ -935,135 +933,35 @@
             // ─── SUPPORTED VIDEO EXTENSIONS ───
             const VIDEO_EXTS = new Set(['mp4', 'mkv', 'avi', 'mov', 'webm', 'm4v', 'mpg', 'mpeg', '3gp']);
 
-            // ─── SCAN DIRECTORY (RECURSIVE) ───
-            // FIXED: proper path building, returns array of { name, handle, path }
-            async function scanDirectory(dirHandle, path = '') {
-                const results = [];
+            // ─── FETCH MOVIES FROM API OR JSON ───
+            async function fetchMovies() {
+                // Try the API first (Node.js server)
                 try {
-                    for await (const entry of dirHandle.values()) {
-                        if (entry.kind === 'file') {
-                            const ext = entry.name.split('.').pop().toLowerCase();
-                            if (VIDEO_EXTS.has(ext)) {
-                                // Build relative path: folder/subfolder/file.mp4
-                                const relPath = path ? `${path}/${entry.name}` : entry.name;
-                                results.push({
-                                    name: entry.name,
-                                    handle: entry,
-                                    path: relPath,
-                                    // The folder name is the parent directory name
-                                    folderName: path.split('/').pop() || 'Root'
-                                });
-                            }
-                        } else if (entry.kind === 'directory') {
-                            // Recurse: pass the correct directory handle and updated path
-                            const subPath = path ? `${path}/${entry.name}` : entry.name;
-                            const subResults = await scanDirectory(entry, subPath);
-                            results.push(...subResults);
-                        }
+                    const resp = await fetch('/api/movies');
+                    if (!resp.ok) throw new Error('API returned ' + resp.status);
+                    const data = await resp.json();
+                    if (Array.isArray(data) && data.length) {
+                        return data;
                     }
+                    // If API returns empty array, treat as no movies
+                    return [];
                 } catch (err) {
-                    console.warn('Error scanning directory:', err);
-                }
-                return results;
-            }
-
-            // ─── SELECT FOLDER ───
-            async function selectVideosFolder() {
-                // Check if the browser supports the File System Access API
-                if (!window.showDirectoryPicker) {
-                    alert('Your browser does not support the File System Access API.\n\n' +
-                        'Please use Google Chrome or Microsoft Edge (version 86+).');
-                    return;
-                }
-
-                try {
-                    selectFolderBtn.disabled = true;
-                    selectFolderBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Scanning...';
-
-                    const dirHandle = await window.showDirectoryPicker({ mode: 'read' });
-                    currentDirHandle = dirHandle;
-
-                    // Show folder name
-                    folderPathDisplay.textContent = dirHandle.name;
-
-                    // Scan recursively
-                    const files = await scanDirectory(dirHandle, '');
-
-                    if (files.length === 0) {
-                        showEmptyState(
-                            'No video files found',
-                            `No supported video files (${Array.from(VIDEO_EXTS).join(', ')}) found in "${dirHandle.name}".`
-                        );
-                        return;
-                    }
-
-                    // ─── Group by folder name ───
-                    // Each video file belongs to a folder; we group them by folderName.
-                    // If multiple videos in same folder, we pick the first one as the "movie".
-                    const folderMap = new Map();
-                    for (const file of files) {
-                        const key = file.folderName || 'Root';
-                        if (!folderMap.has(key)) {
-                            folderMap.set(key, {
-                                folderName: key,
-                                videoFile: file.name,
-                                videoHandle: file.handle,
-                                path: file.path,
-                                // Use folder name as poster seed
-                                posterSeed: key.replace(/\s/g, '').toLowerCase() || 'movie'
-                            });
-                        } else {
-                            // Optionally, you could keep the first video or the largest, etc.
-                            // We keep the first one found.
+                    console.warn('API fetch failed, trying movies.json…', err);
+                    // Fallback to static movies.json
+                    try {
+                        const resp = await fetch('movies.json');
+                        if (!resp.ok) throw new Error('movies.json not found');
+                        const data = await resp.json();
+                        if (Array.isArray(data)) {
+                            return data;
                         }
+                        return [];
+                    } catch (e2) {
+                        console.warn('movies.json not available. Falling back to manual folder selection.');
+                        // No movies source — user must select a folder manually
+                        return null;
                     }
-
-                    // Convert map to array and sort
-                    allMovies = Array.from(folderMap.values());
-                    allMovies.sort((a, b) => a.folderName.localeCompare(b.folderName));
-
-                    // Update badge
-                    navBadge.textContent = allMovies.length;
-
-                    // Render
-                    renderMovies(allMovies, searchQuery);
-
-                    // Update folder path display with count
-                    folderPathDisplay.textContent = `${dirHandle.name} (${allMovies.length} movies)`;
-
-                } catch (err) {
-                    // User cancelled or error
-                    if (err.name !== 'AbortError' && err.name !== 'SecurityError') {
-                        console.error('Folder selection error:', err);
-                        showEmptyState('Error selecting folder', err.message || 'Please try again.');
-                    }
-                } finally {
-                    selectFolderBtn.disabled = false;
-                    selectFolderBtn.innerHTML = '<i class="fas fa-folder"></i> Select Videos Folder';
                 }
-            }
-
-            // ─── RESET ───
-            function resetFolder() {
-                currentDirHandle = null;
-                allMovies = [];
-                searchQuery = '';
-                searchInput.value = '';
-                searchInput.classList.remove('active');
-                folderPathDisplay.textContent = 'No folder selected';
-                navBadge.textContent = '0';
-                showEmptyState(
-                    'No movies loaded',
-                    'Click <strong>"Select Videos Folder"</strong> to choose your local videos directory.'
-                );
-                // Reset hero
-                heroTitle.textContent = 'Your Videos';
-                heroDesc.textContent = 'Click the button below to select your videos folder.';
-                heroFolder.textContent = '—';
-                heroFile.textContent = '—';
-                heroQuality.textContent = '—';
-                heroPlayBtn.disabled = true;
-                heroBackdrop.style.backgroundImage = 'url(\'https://picsum.photos/seed/empty/1920/1080\')';
             }
 
             // ─── RENDER MOVIES ───
@@ -1071,22 +969,25 @@
                 if (!movies || movies.length === 0) {
                     showEmptyState(
                         'No movies found',
-                        'Click <strong>"Select Videos Folder"</strong> to choose your local videos directory.'
+                        'Make sure your <code>/videos/</code> folder contains subfolders with video files (MP4, MKV, AVI, MOV, etc.)<br>or click the button below to select a folder manually.'
                     );
                     return;
                 }
 
-                let filtered = movies;
+                allMovies = movies;
+                navBadge.textContent = allMovies.length;
+
+                let filtered = allMovies;
                 if (query.trim() !== '') {
                     const q = query.toLowerCase().trim();
-                    filtered = movies.filter(m =>
+                    filtered = allMovies.filter(m =>
                         m.folderName.toLowerCase().includes(q) ||
                         m.videoFile.toLowerCase().includes(q)
                     );
                 }
 
                 // Hero: first filtered or first overall
-                const featured = filtered.length > 0 ? filtered[0] : movies[0];
+                const featured = filtered.length > 0 ? filtered[0] : allMovies[0];
                 updateHero(featured);
 
                 let html = '';
@@ -1121,7 +1022,7 @@
                 const hidden = query.trim() !== '' ? 'hidden' : '';
 
                 // ── Trending (first 6) ──
-                const trending = movies.slice(0, 6);
+                const trending = allMovies.slice(0, 6);
                 if (trending.length) {
                     html += `
                         <div class="row ${hidden}">
@@ -1137,7 +1038,7 @@
                 }
 
                 // ── Popular (next 6) ──
-                const popular = movies.slice(6, 12);
+                const popular = allMovies.slice(6, 12);
                 if (popular.length) {
                     html += `
                         <div class="row ${hidden}">
@@ -1153,7 +1054,7 @@
                 }
 
                 // ── Continue Watching (shuffle) ──
-                const shuffled = [...movies].sort(() => Math.random() - 0.5).slice(0, 6);
+                const shuffled = [...allMovies].sort(() => Math.random() - 0.5).slice(0, 6);
                 if (shuffled.length) {
                     html += `
                         <div class="row ${hidden}">
@@ -1169,11 +1070,12 @@
                 }
 
                 movieRows.innerHTML = html;
+                initialLoader.style.display = 'none';
 
                 // ── Attach events ──
                 document.querySelectorAll('.movie-card').forEach(card => {
                     const folderName = card.dataset.folder;
-                    const movie = movies.find(m => m.folderName === folderName);
+                    const movie = allMovies.find(m => m.folderName === folderName);
                     if (!movie) return;
 
                     card.addEventListener('click', function(e) {
@@ -1193,7 +1095,7 @@
 
                 // Hero play button
                 heroPlayBtn.onclick = function() {
-                    const f = filtered.length > 0 ? filtered[0] : movies[0];
+                    const f = filtered.length > 0 ? filtered[0] : allMovies[0];
                     if (f) openVideoModal(f);
                 };
             }
@@ -1242,13 +1144,19 @@
                 heroPlayBtn.disabled = false;
             }
 
-            // ─── OPEN VIDEO MODAL ───
+            // ─── OPEN VIDEO MODAL (works for both API and manual) ───
             async function openVideoModal(movie) {
                 try {
-                    // Read the file as a blob
-                    const file = await movie.videoHandle.getFile();
-                    const url = URL.createObjectURL(file);
-
+                    let url;
+                    if (movie.videoHandle) {
+                        // Manual folder selection (File System Access API)
+                        const file = await movie.videoHandle.getFile();
+                        url = URL.createObjectURL(file);
+                    } else {
+                        // From API/JSON – serve from /videos/ path
+                        const videoPath = `videos/${encodeURIComponent(movie.folderName)}/${encodeURIComponent(movie.videoFile)}`;
+                        url = videoPath;
+                    }
                     modalVideo.src = url;
                     modalVideo.load();
                     modalTitle.textContent = movie.folderName;
@@ -1269,7 +1177,9 @@
                 videoModal.classList.remove('active');
                 if (modalVideo.src) {
                     modalVideo.pause();
-                    URL.revokeObjectURL(modalVideo.src);
+                    if (modalVideo.src.startsWith('blob:')) {
+                        URL.revokeObjectURL(modalVideo.src);
+                    }
                     modalVideo.src = '';
                     modalVideo.load();
                 }
@@ -1288,12 +1198,12 @@
                         </button>
                     </div>
                 `;
-                // Re-bind inline button
+                // Bind inline button
                 const inlineBtn = document.getElementById('selectFolderBtnInline');
                 if (inlineBtn) {
                     inlineBtn.addEventListener('click', selectVideosFolder);
                 }
-                // Also update hero
+                // Update hero
                 heroTitle.textContent = 'No movies loaded';
                 heroDesc.textContent = 'Click the button to select your videos folder.';
                 heroFolder.textContent = '—';
@@ -1302,6 +1212,112 @@
                 heroPlayBtn.disabled = true;
                 heroBackdrop.style.backgroundImage = 'url(\'https://picsum.photos/seed/empty/1920/1080\')';
                 navBadge.textContent = '0';
+                initialLoader.style.display = 'none';
+            }
+
+            // ─── FILE SYSTEM ACCESS API – MANUAL FOLDER SELECTION ───
+            async function selectVideosFolder() {
+                if (!window.showDirectoryPicker) {
+                    alert('Your browser does not support the File System Access API.\n\n' +
+                        'Please use Google Chrome or Microsoft Edge (version 86+).');
+                    return;
+                }
+
+                try {
+                    const dirHandle = await window.showDirectoryPicker({ mode: 'read' });
+                    currentDirHandle = dirHandle;
+                    folderPathDisplay.textContent = dirHandle.name;
+
+                    // Scan recursively
+                    const files = await scanDirectory(dirHandle, '');
+                    if (files.length === 0) {
+                        showEmptyState(
+                            'No video files found',
+                            `No supported video files (${Array.from(VIDEO_EXTS).join(', ')}) found in "${dirHandle.name}".`
+                        );
+                        return;
+                    }
+
+                    // Group by folder name
+                    const folderMap = new Map();
+                    for (const file of files) {
+                        const key = file.folderName || 'Root';
+                        if (!folderMap.has(key)) {
+                            folderMap.set(key, {
+                                folderName: key,
+                                videoFile: file.name,
+                                videoHandle: file.handle,
+                                path: file.path,
+                                posterSeed: key.replace(/\s/g, '').toLowerCase() || 'movie'
+                            });
+                        }
+                    }
+                    const movies = Array.from(folderMap.values());
+                    movies.sort((a, b) => a.folderName.localeCompare(b.folderName));
+
+                    // Use manual mode flag
+                    useManualFolder = true;
+                    renderMovies(movies, searchQuery);
+                    folderPathDisplay.textContent = `${dirHandle.name} (${movies.length} movies)`;
+
+                } catch (err) {
+                    if (err.name !== 'AbortError' && err.name !== 'SecurityError') {
+                        console.error('Folder selection error:', err);
+                        showEmptyState('Error selecting folder', err.message || 'Please try again.');
+                    }
+                }
+            }
+
+            // ─── SCAN DIRECTORY (for manual selection) ───
+            async function scanDirectory(dirHandle, path = '') {
+                const results = [];
+                try {
+                    for await (const entry of dirHandle.values()) {
+                        if (entry.kind === 'file') {
+                            const ext = entry.name.split('.').pop().toLowerCase();
+                            if (VIDEO_EXTS.has(ext)) {
+                                const relPath = path ? `${path}/${entry.name}` : entry.name;
+                                results.push({
+                                    name: entry.name,
+                                    handle: entry,
+                                    path: relPath,
+                                    folderName: path.split('/').pop() || 'Root'
+                                });
+                            }
+                        } else if (entry.kind === 'directory') {
+                            const subPath = path ? `${path}/${entry.name}` : entry.name;
+                            const subResults = await scanDirectory(entry, subPath);
+                            results.push(...subResults);
+                        }
+                    }
+                } catch (err) {
+                    console.warn('Error scanning directory:', err);
+                }
+                return results;
+            }
+
+            // ─── RESET ───
+            function resetFolder() {
+                currentDirHandle = null;
+                useManualFolder = false;
+                allMovies = [];
+                searchQuery = '';
+                searchInput.value = '';
+                searchInput.classList.remove('active');
+                folderPathDisplay.textContent = 'No folder selected';
+                navBadge.textContent = '0';
+                showEmptyState(
+                    'No movies loaded',
+                    'Click the button below to select your videos folder manually,<br>or make sure the <code>/api/movies</code> endpoint is available.'
+                );
+                // Reset hero
+                heroTitle.textContent = 'Your Videos';
+                heroDesc.textContent = 'No movies loaded.';
+                heroFolder.textContent = '—';
+                heroFile.textContent = '—';
+                heroQuality.textContent = '—';
+                heroPlayBtn.disabled = true;
+                heroBackdrop.style.backgroundImage = 'url(\'https://picsum.photos/seed/empty/1920/1080\')';
             }
 
             // ─── SEARCH ───
@@ -1323,11 +1339,12 @@
             }
 
             // ─── INIT ───
-            function init() {
-                // ── Select folder button ──
-                selectFolderBtn.addEventListener('click', selectVideosFolder);
-
-                // ── Reset button ──
+            async function init() {
+                // ── Bind buttons ──
+                const selectBtn = document.getElementById('selectFolderBtn');
+                if (selectBtn) {
+                    selectBtn.addEventListener('click', selectVideosFolder);
+                }
                 resetFolderBtn.addEventListener('click', resetFolder);
 
                 // ── Search ──
@@ -1381,13 +1398,30 @@
                 // ── Scroll ──
                 window.addEventListener('scroll', handleNavbar);
 
-                // ── Initial state ──
-                showEmptyState(
-                    'No movies loaded',
-                    'Click <strong>"Select Videos Folder"</strong> to choose your local videos directory.'
-                );
-
-                console.log('✅ CineVault ready – click "Select Videos Folder" to load your library.');
+                // ── Load movies ──
+                try {
+                    const movies = await fetchMovies();
+                    if (movies && movies.length > 0) {
+                        // Success from API or JSON
+                        folderPathDisplay.textContent = 'videos/ (auto-detected)';
+                        renderMovies(movies, '');
+                    } else if (movies !== null && movies.length === 0) {
+                        // API returned empty array
+                        showEmptyState(
+                            'No movies found',
+                            'Your <code>/videos/</code> folder is empty or contains no supported video files.'
+                        );
+                    } else {
+                        // No API and no JSON – show manual option
+                        showEmptyState(
+                            'No movies loaded',
+                            'No API or <code>movies.json</code> found.<br>Click the button below to select your videos folder manually.'
+                        );
+                    }
+                } catch (err) {
+                    console.error('Init error:', err);
+                    showEmptyState('Error loading movies', err.message || 'Check console for details.');
+                }
             }
 
             // ─── GO ───
