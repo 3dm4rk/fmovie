@@ -1,28 +1,1400 @@
-// Use File System Access API
-async function selectVideosFolder() {
-    try {
-        const dirHandle = await window.showDirectoryPicker();
-        // Scan recursively for video files
-        const files = await scanDirectory(dirHandle);
-        // Build movie list from files
-        // ... render
-    } catch (err) {
-        // Fallback to virtual file system
-    }
-}
-
-async function scanDirectory(dirHandle, path = '') {
-    const entries = [];
-    for await (const entry of dirHandle.values()) {
-        if (entry.kind === 'file') {
-            const ext = entry.name.split('.').pop().toLowerCase();
-            if (['mp4', 'mkv', 'avi', 'mov', 'webm'].includes(ext)) {
-                entries.push({ name: entry.name, handle: entry, path });
-            }
-        } else if (entry.kind === 'directory') {
-            const subEntries = await scanDirectory(entry, path + '/' + entry.name);
-            entries.push(...subEntries);
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CineVault · Local Video Library</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+    <style>
+        /* ─── RESET & BASE ─── */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-    }
-    return entries;
-}
+        body {
+            background: #141414;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        /* ─── NAVBAR ─── */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            padding: 0.8rem 4%;
+            background: linear-gradient(180deg, rgba(0, 0, 0, 0.95) 0%, rgba(0, 0, 0, 0.7) 60%, transparent 100%);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.3s ease;
+            flex-wrap: wrap;
+            gap: 0.8rem;
+        }
+        .navbar.scrolled {
+            background: rgba(20, 20, 20, 0.98);
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.8);
+        }
+        .nav-left {
+            display: flex;
+            align-items: center;
+            gap: 2.5rem;
+            flex-wrap: wrap;
+        }
+        .nav-logo {
+            font-weight: 800;
+            font-size: 1.8rem;
+            letter-spacing: -0.5px;
+            background: linear-gradient(135deg, #f7c948 0%, #f5b642 40%, #e09600 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            cursor: pointer;
+        }
+        .nav-links {
+            display: flex;
+            gap: 1.5rem;
+            list-style: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+        .nav-links li {
+            cursor: pointer;
+            color: #b3b3b3;
+            transition: color 0.2s;
+        }
+        .nav-links li:hover,
+        .nav-links li.active {
+            color: #fff;
+        }
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 1.2rem;
+            flex-wrap: wrap;
+        }
+        .nav-badge {
+            background: rgba(255, 215, 150, 0.1);
+            border: 1px solid rgba(255, 215, 150, 0.1);
+            padding: 0.25rem 0.9rem;
+            border-radius: 30px;
+            font-size: 0.7rem;
+            color: #d4c9b0;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .nav-badge i {
+            color: #f5b642;
+        }
+        .nav-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 4px;
+            background: linear-gradient(135deg, #f5b642, #d4890a);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.9rem;
+            color: #141414;
+            cursor: pointer;
+        }
+        .nav-right i:not(.search-toggle) {
+            font-size: 1.2rem;
+            color: #b3b3b3;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        .nav-right i:not(.search-toggle):hover {
+            color: #fff;
+        }
+
+        /* ─── SEARCH ─── */
+        .search-container {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        .search-toggle {
+            background: none;
+            border: none;
+            color: #b3b3b3;
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 0.2rem;
+        }
+        .search-toggle:hover {
+            color: #fff;
+        }
+        .search-input {
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 30px;
+            padding: 0.4rem 1rem 0.4rem 2.5rem;
+            color: #fff;
+            font-size: 0.9rem;
+            width: 0;
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.2, 0.9, 0.4, 1);
+            outline: none;
+            font-family: inherit;
+        }
+        .search-input.active {
+            width: 220px;
+            opacity: 1;
+            padding: 0.4rem 1rem 0.4rem 2.5rem;
+            border-color: rgba(255, 215, 150, 0.3);
+            background: rgba(0, 0, 0, 0.8);
+        }
+        .search-input:focus {
+            border-color: #f5b642;
+            box-shadow: 0 0 20px rgba(245, 182, 66, 0.1);
+        }
+        .search-input::placeholder {
+            color: #8a8a8a;
+            font-weight: 300;
+        }
+        .search-icon {
+            position: absolute;
+            left: 10px;
+            color: #8a8a8a;
+            font-size: 0.9rem;
+            pointer-events: none;
+        }
+        .search-clear {
+            position: absolute;
+            right: 10px;
+            color: #8a8a8a;
+            font-size: 0.8rem;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.3s;
+            background: none;
+            border: none;
+            padding: 0.2rem;
+        }
+        .search-clear.visible {
+            opacity: 1;
+        }
+        .search-clear:hover {
+            color: #fff;
+        }
+
+        /* ─── HERO ─── */
+        .hero {
+            position: relative;
+            width: 100%;
+            height: 85vh;
+            min-height: 500px;
+            background: linear-gradient(135deg, #0a0e14 0%, #1a1a2e 50%, #0a0e14 100%);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            padding: 0 4%;
+            overflow: hidden;
+        }
+        .hero::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse at 70% 50%, rgba(245, 182, 66, 0.08) 0%, transparent 60%),
+                radial-gradient(ellipse at 30% 80%, rgba(100, 200, 255, 0.04) 0%, transparent 50%);
+            pointer-events: none;
+        }
+        .hero-backdrop {
+            position: absolute;
+            inset: 0;
+            background: url('https://picsum.photos/seed/hero/1920/1080') center/cover no-repeat;
+            opacity: 0.15;
+            filter: blur(2px) brightness(0.6);
+            transition: background-image 0.6s ease;
+        }
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            max-width: 600px;
+        }
+        .hero-badge {
+            display: inline-block;
+            background: rgba(245, 182, 66, 0.15);
+            border: 1px solid rgba(245, 182, 66, 0.2);
+            padding: 0.3rem 1.2rem;
+            border-radius: 30px;
+            font-size: 0.75rem;
+            color: #f5b642;
+            margin-bottom: 1.2rem;
+            letter-spacing: 0.5px;
+        }
+        .hero-title {
+            font-size: 4.5rem;
+            font-weight: 800;
+            line-height: 1.1;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #fff 0%, #f0e6d0 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        .hero-desc {
+            font-size: 1.1rem;
+            color: #b3b3b3;
+            line-height: 1.6;
+            max-width: 500px;
+            margin-bottom: 1.8rem;
+            opacity: 0.9;
+        }
+        .hero-meta {
+            display: flex;
+            gap: 1.5rem;
+            font-size: 0.9rem;
+            color: #8a8a8a;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+        .hero-meta span {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .hero-meta i {
+            color: #f5b642;
+            font-size: 0.8rem;
+        }
+        .hero-buttons {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        .btn-primary {
+            background: #fff;
+            color: #141414;
+            border: none;
+            padding: 0.7rem 2.2rem;
+            border-radius: 4px;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.2s;
+        }
+        .btn-primary:hover {
+            background: rgba(255, 255, 255, 0.85);
+            transform: scale(1.02);
+        }
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .btn-secondary {
+            background: rgba(109, 109, 110, 0.4);
+            color: #fff;
+            border: none;
+            padding: 0.7rem 2.2rem;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.2s;
+            backdrop-filter: blur(4px);
+        }
+        .btn-secondary:hover {
+            background: rgba(109, 109, 110, 0.6);
+        }
+        .btn-select-folder {
+            background: linear-gradient(135deg, #f7c948, #e09600);
+            color: #141414;
+            border: none;
+            padding: 0.7rem 2rem;
+            border-radius: 30px;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.2s;
+            margin-top: 0.5rem;
+        }
+        .btn-select-folder:hover {
+            transform: scale(1.03);
+            box-shadow: 0 4px 25px rgba(245, 182, 66, 0.4);
+        }
+        .btn-select-folder:disabled {
+            opacity: 0.6;
+            cursor: wait;
+            transform: none;
+        }
+
+        /* ─── FOLDER PATH DISPLAY ─── */
+        .folder-path-bar {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.8rem 1.5rem;
+            background: rgba(255, 255, 255, 0.04);
+            border-radius: 30px;
+            border: 1px solid rgba(255, 215, 150, 0.12);
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+        .folder-path-bar .label {
+            font-size: 0.85rem;
+            color: #b3b3b3;
+        }
+        .folder-path-bar .path {
+            font-size: 0.85rem;
+            color: #f5b642;
+            font-weight: 500;
+            max-width: 350px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            flex: 1;
+        }
+        .folder-path-bar .reset-btn {
+            background: rgba(255, 255, 255, 0.08);
+            color: #b3b3b3;
+            border: none;
+            padding: 0.3rem 1.2rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .folder-path-bar .reset-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+            color: #fff;
+        }
+
+        /* ─── ROWS ─── */
+        .rows-container {
+            padding: 0 4% 3rem;
+            position: relative;
+            z-index: 2;
+            margin-top: -4rem;
+        }
+        .row {
+            margin-bottom: 2.8rem;
+        }
+        .row-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            padding: 0 0.5rem;
+        }
+        .row-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+            color: #e5e5e5;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .row-title i {
+            color: #f5b642;
+            font-size: 1.2rem;
+            opacity: 0.7;
+        }
+        .row-view-all {
+            font-size: 0.85rem;
+            color: #b3b3b3;
+            cursor: pointer;
+            transition: color 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .row-view-all:hover {
+            color: #fff;
+        }
+        .movie-scroll {
+            display: flex;
+            gap: 1rem;
+            overflow-x: auto;
+            padding: 0.5rem 0.3rem 1.5rem;
+            scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch;
+        }
+        .movie-scroll::-webkit-scrollbar {
+            height: 4px;
+            background: transparent;
+        }
+        .movie-scroll::-webkit-scrollbar-thumb {
+            background: #f5b642;
+            border-radius: 10px;
+        }
+        .movie-scroll::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 10px;
+        }
+
+        /* ─── MOVIE CARD ─── */
+        .movie-card {
+            flex: 0 0 220px;
+            min-width: 200px;
+            border-radius: 6px;
+            overflow: hidden;
+            background: #1a1a1a;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.2, 0.9, 0.4, 1);
+            position: relative;
+            border: 2px solid transparent;
+        }
+        .movie-card:hover {
+            transform: scale(1.08);
+            z-index: 10;
+            border-color: rgba(255, 255, 255, 0.1);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8);
+        }
+        .movie-card .thumbnail {
+            position: relative;
+            aspect-ratio: 16 / 9;
+            width: 100%;
+            background: #0a0a0a;
+            overflow: hidden;
+        }
+        .movie-card .thumbnail img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            background: #0a0a0a;
+        }
+        .movie-card .thumbnail .poster-fallback {
+            width: 100%;
+            height: 100%;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #1a1a2e, #0a0e14);
+            color: #4a4a5a;
+            font-size: 2.5rem;
+            flex-direction: column;
+            gap: 8px;
+            position: absolute;
+            inset: 0;
+        }
+        .movie-card .thumbnail .poster-fallback i {
+            font-size: 3rem;
+            color: #f5b642;
+            opacity: 0.4;
+        }
+        .movie-card .thumbnail .poster-fallback span {
+            font-size: 0.8rem;
+            opacity: 0.5;
+            text-align: center;
+            padding: 0 0.5rem;
+        }
+        .movie-card .badge-top {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(4px);
+            padding: 0.15rem 0.7rem;
+            border-radius: 20px;
+            font-size: 0.6rem;
+            color: #b3b3b3;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            z-index: 2;
+            font-weight: 500;
+        }
+        .movie-card .badge-top i {
+            color: #f5b642;
+            font-size: 0.55rem;
+            margin-right: 4px;
+        }
+        .movie-card .card-hover {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 1.5rem 1rem 1rem;
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.95) 0%, transparent 100%);
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+        }
+        .movie-card:hover .card-hover {
+            opacity: 1;
+        }
+        .movie-card .card-hover .play-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #fff;
+            color: #141414;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 0.5rem;
+            pointer-events: auto;
+        }
+        .movie-card .card-hover .play-btn:hover {
+            transform: scale(1.1);
+        }
+        .movie-card .card-info {
+            padding: 0.7rem 0.5rem 0.5rem;
+            background: #1a1a1a;
+        }
+        .movie-card .card-info .title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #e5e5e5;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .movie-card .card-info .meta {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.7rem;
+            color: #8a8a8a;
+            margin-top: 4px;
+            flex-wrap: wrap;
+        }
+        .movie-card .card-info .meta i {
+            color: #f5b642;
+            font-size: 0.6rem;
+        }
+
+        /* ─── SEARCH RESULTS ─── */
+        .search-results-row {
+            display: none;
+        }
+        .search-results-row.active {
+            display: block;
+        }
+        .no-results {
+            text-align: center;
+            padding: 3rem 2rem;
+            color: #6a6a6a;
+            width: 100%;
+        }
+        .no-results i {
+            font-size: 2.5rem;
+            color: #f5b642;
+            opacity: 0.3;
+            margin-bottom: 1rem;
+            display: block;
+        }
+        .row.hidden {
+            display: none;
+        }
+
+        /* ─── VIDEO MODAL ─── */
+        .video-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            background: rgba(0, 0, 0, 0.92);
+            backdrop-filter: blur(12px);
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+        .video-modal.active {
+            display: flex;
+        }
+        .video-modal-content {
+            position: relative;
+            width: 100%;
+            max-width: 1100px;
+            background: #0a0a0a;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 40px 80px rgba(0, 0, 0, 0.9);
+        }
+        .video-modal-close {
+            position: absolute;
+            top: 16px;
+            right: 20px;
+            z-index: 10;
+            background: rgba(0, 0, 0, 0.7);
+            border: none;
+            color: #fff;
+            font-size: 1.8rem;
+            cursor: pointer;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            backdrop-filter: blur(4px);
+        }
+        .video-modal-close:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: scale(1.05);
+        }
+        .video-modal video {
+            width: 100%;
+            display: block;
+            background: #000;
+            max-height: 85vh;
+        }
+        .video-modal-info {
+            padding: 1.2rem 2rem 1.8rem;
+            background: linear-gradient(to top, #0a0a0a 0%, #141414 100%);
+        }
+        .video-modal-info h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.3rem;
+            color: #e5e5e5;
+        }
+        .video-modal-info .sub {
+            color: #8a8a8a;
+            font-size: 0.9rem;
+            display: flex;
+            gap: 1.2rem;
+            flex-wrap: wrap;
+        }
+        .video-modal-info .sub i {
+            color: #f5b642;
+            margin-right: 4px;
+        }
+
+        /* ─── EMPTY / LOADING ─── */
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: #6a6a6a;
+        }
+        .empty-state i {
+            font-size: 3rem;
+            color: #f5b642;
+            opacity: 0.3;
+            margin-bottom: 1rem;
+            display: block;
+        }
+        .empty-state .hint {
+            color: #8a8a8a;
+            font-size: 0.95rem;
+            margin-top: 0.5rem;
+        }
+        .loading-spinner {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: #b3b3b3;
+        }
+        .loading-spinner i {
+            font-size: 2.5rem;
+            color: #f5b642;
+            animation: spin 1s linear infinite;
+            display: block;
+            margin-bottom: 1rem;
+        }
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* ─── RESPONSIVE ─── */
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 2.8rem;
+            }
+            .hero {
+                height: 70vh;
+                min-height: 400px;
+            }
+            .movie-card {
+                flex: 0 0 160px;
+                min-width: 150px;
+            }
+            .nav-links {
+                display: none;
+            }
+            .navbar {
+                padding: 0.6rem 4%;
+            }
+            .nav-logo {
+                font-size: 1.4rem;
+            }
+            .search-input.active {
+                width: 160px;
+            }
+            .hero-buttons .btn-primary,
+            .hero-buttons .btn-secondary {
+                padding: 0.5rem 1.5rem;
+                font-size: 0.85rem;
+            }
+            .row-title {
+                font-size: 1.2rem;
+            }
+            .video-modal {
+                padding: 0.5rem;
+            }
+            .video-modal-info {
+                padding: 1rem 1.2rem 1.4rem;
+            }
+            .folder-path-bar {
+                padding: 0.6rem 1rem;
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .folder-path-bar .path {
+                max-width: 100%;
+            }
+        }
+        @media (max-width: 480px) {
+            .hero-title {
+                font-size: 2rem;
+            }
+            .hero-desc {
+                font-size: 0.9rem;
+            }
+            .movie-card {
+                flex: 0 0 140px;
+                min-width: 130px;
+            }
+            .hero-meta {
+                flex-wrap: wrap;
+                gap: 0.8rem;
+                font-size: 0.8rem;
+            }
+            .rows-container {
+                padding: 0 2% 2rem;
+                margin-top: -2rem;
+            }
+            .search-input.active {
+                width: 120px;
+                font-size: 0.8rem;
+            }
+            .nav-right {
+                gap: 0.8rem;
+            }
+            .video-modal-close {
+                top: 8px;
+                right: 12px;
+                width: 36px;
+                height: 36px;
+                font-size: 1.3rem;
+            }
+        }
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+            background: #141414;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #f5b642;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1a1a1a;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ─── NAVBAR ─── -->
+    <nav class="navbar" id="navbar">
+        <div class="nav-left">
+            <div class="nav-logo">CineVault</div>
+            <ul class="nav-links">
+                <li class="active">Home</li>
+                <li>TV Shows</li>
+                <li>Movies</li>
+                <li>New & Popular</li>
+                <li>My List</li>
+            </ul>
+        </div>
+        <div class="nav-right">
+            <div class="search-container">
+                <button class="search-toggle" id="searchToggle"><i class="fas fa-search"></i></button>
+                <input type="text" class="search-input" id="searchInput" placeholder="Search movies..." />
+                <i class="fas fa-search search-icon"></i>
+                <button class="search-clear" id="searchClear">✕</button>
+            </div>
+            <i class="fas fa-bell"></i>
+            <div class="nav-avatar">C</div>
+            <div class="nav-badge">
+                <i class="fas fa-folder-open"></i>
+                <span id="navFolderCount">0</span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ─── HERO ─── -->
+    <section class="hero" id="heroBanner">
+        <div class="hero-backdrop" id="heroBackdrop"></div>
+        <div class="hero-content">
+            <div class="hero-badge"><i class="fas fa-star" style="margin-right:6px;"></i> Local Library</div>
+            <h1 class="hero-title" id="heroTitle">Your Videos</h1>
+            <p class="hero-desc" id="heroDesc">Click the button below to select your videos folder.</p>
+            <div class="hero-meta">
+                <span><i class="fas fa-folder"></i> <span id="heroFolder">—</span></span>
+                <span><i class="fas fa-file-video"></i> <span id="heroFile">—</span></span>
+                <span><i class="fas fa-video"></i> <span id="heroQuality">—</span></span>
+            </div>
+            <div class="hero-buttons">
+                <button class="btn-primary" id="heroPlayBtn" disabled><i class="fas fa-play"></i> Play</button>
+                <button class="btn-secondary"><i class="fas fa-plus"></i> My List</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- ─── ROWS ─── -->
+    <div class="rows-container" id="rowsContainer">
+        <div class="folder-path-bar">
+            <span class="label"><i class="fas fa-folder-open"></i> Folder:</span>
+            <span class="path" id="folderPathDisplay">No folder selected</span>
+            <button class="reset-btn" id="resetFolderBtn"><i class="fas fa-undo"></i> Reset</button>
+        </div>
+        <div id="movieRows">
+            <div class="empty-state">
+                <i class="fas fa-folder-open"></i>
+                <p style="font-size:1.2rem;">No movies loaded</p>
+                <p class="hint">Click <strong>"Select Videos Folder"</strong> below to choose your local videos directory.</p>
+                <button class="btn-select-folder" id="selectFolderBtn">
+                    <i class="fas fa-folder"></i> Select Videos Folder
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ─── VIDEO MODAL ─── -->
+    <div class="video-modal" id="videoModal">
+        <div class="video-modal-content">
+            <button class="video-modal-close" id="videoModalClose"><i class="fas fa-times"></i></button>
+            <video id="modalVideo" controls autoplay playsinline></video>
+            <div class="video-modal-info">
+                <h2 id="modalTitle">Movie Title</h2>
+                <div class="sub">
+                    <span><i class="fas fa-folder"></i> <span id="modalFolder">Folder</span></span>
+                    <span><i class="fas fa-file-video"></i> <span id="modalFile">file.mp4</span></span>
+                    <span><i class="fas fa-video"></i> <span id="modalQuality">Local</span></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ================================================================
+        //  CineVault – File System Access API
+        //  Fully fixed: proper recursion, path building, grouping by folder
+        // ================================================================
+        (function() {
+            "use strict";
+
+            // ─── STATE ───
+            let allMovies = [];
+            let searchQuery = '';
+            let currentDirHandle = null;
+
+            // ─── DOM REFS ───
+            const movieRows = document.getElementById('movieRows');
+            const navBadge = document.getElementById('navFolderCount');
+            const folderPathDisplay = document.getElementById('folderPathDisplay');
+            const selectFolderBtn = document.getElementById('selectFolderBtn');
+            const resetFolderBtn = document.getElementById('resetFolderBtn');
+
+            const heroTitle = document.getElementById('heroTitle');
+            const heroDesc = document.getElementById('heroDesc');
+            const heroFolder = document.getElementById('heroFolder');
+            const heroFile = document.getElementById('heroFile');
+            const heroQuality = document.getElementById('heroQuality');
+            const heroBackdrop = document.getElementById('heroBackdrop');
+            const heroPlayBtn = document.getElementById('heroPlayBtn');
+
+            const modalVideo = document.getElementById('modalVideo');
+            const modalTitle = document.getElementById('modalTitle');
+            const modalFolder = document.getElementById('modalFolder');
+            const modalFile = document.getElementById('modalFile');
+            const modalQuality = document.getElementById('modalQuality');
+            const videoModal = document.getElementById('videoModal');
+            const modalClose = document.getElementById('videoModalClose');
+
+            const searchInput = document.getElementById('searchInput');
+            const searchToggle = document.getElementById('searchToggle');
+            const searchClear = document.getElementById('searchClear');
+
+            // ─── SUPPORTED VIDEO EXTENSIONS ───
+            const VIDEO_EXTS = new Set(['mp4', 'mkv', 'avi', 'mov', 'webm', 'm4v', 'mpg', 'mpeg', '3gp']);
+
+            // ─── SCAN DIRECTORY (RECURSIVE) ───
+            // FIXED: proper path building, returns array of { name, handle, path }
+            async function scanDirectory(dirHandle, path = '') {
+                const results = [];
+                try {
+                    for await (const entry of dirHandle.values()) {
+                        if (entry.kind === 'file') {
+                            const ext = entry.name.split('.').pop().toLowerCase();
+                            if (VIDEO_EXTS.has(ext)) {
+                                // Build relative path: folder/subfolder/file.mp4
+                                const relPath = path ? `${path}/${entry.name}` : entry.name;
+                                results.push({
+                                    name: entry.name,
+                                    handle: entry,
+                                    path: relPath,
+                                    // The folder name is the parent directory name
+                                    folderName: path.split('/').pop() || 'Root'
+                                });
+                            }
+                        } else if (entry.kind === 'directory') {
+                            // Recurse: pass the correct directory handle and updated path
+                            const subPath = path ? `${path}/${entry.name}` : entry.name;
+                            const subResults = await scanDirectory(entry, subPath);
+                            results.push(...subResults);
+                        }
+                    }
+                } catch (err) {
+                    console.warn('Error scanning directory:', err);
+                }
+                return results;
+            }
+
+            // ─── SELECT FOLDER ───
+            async function selectVideosFolder() {
+                // Check if the browser supports the File System Access API
+                if (!window.showDirectoryPicker) {
+                    alert('Your browser does not support the File System Access API.\n\n' +
+                        'Please use Google Chrome or Microsoft Edge (version 86+).');
+                    return;
+                }
+
+                try {
+                    selectFolderBtn.disabled = true;
+                    selectFolderBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Scanning...';
+
+                    const dirHandle = await window.showDirectoryPicker({ mode: 'read' });
+                    currentDirHandle = dirHandle;
+
+                    // Show folder name
+                    folderPathDisplay.textContent = dirHandle.name;
+
+                    // Scan recursively
+                    const files = await scanDirectory(dirHandle, '');
+
+                    if (files.length === 0) {
+                        showEmptyState(
+                            'No video files found',
+                            `No supported video files (${Array.from(VIDEO_EXTS).join(', ')}) found in "${dirHandle.name}".`
+                        );
+                        return;
+                    }
+
+                    // ─── Group by folder name ───
+                    // Each video file belongs to a folder; we group them by folderName.
+                    // If multiple videos in same folder, we pick the first one as the "movie".
+                    const folderMap = new Map();
+                    for (const file of files) {
+                        const key = file.folderName || 'Root';
+                        if (!folderMap.has(key)) {
+                            folderMap.set(key, {
+                                folderName: key,
+                                videoFile: file.name,
+                                videoHandle: file.handle,
+                                path: file.path,
+                                // Use folder name as poster seed
+                                posterSeed: key.replace(/\s/g, '').toLowerCase() || 'movie'
+                            });
+                        } else {
+                            // Optionally, you could keep the first video or the largest, etc.
+                            // We keep the first one found.
+                        }
+                    }
+
+                    // Convert map to array and sort
+                    allMovies = Array.from(folderMap.values());
+                    allMovies.sort((a, b) => a.folderName.localeCompare(b.folderName));
+
+                    // Update badge
+                    navBadge.textContent = allMovies.length;
+
+                    // Render
+                    renderMovies(allMovies, searchQuery);
+
+                    // Update folder path display with count
+                    folderPathDisplay.textContent = `${dirHandle.name} (${allMovies.length} movies)`;
+
+                } catch (err) {
+                    // User cancelled or error
+                    if (err.name !== 'AbortError' && err.name !== 'SecurityError') {
+                        console.error('Folder selection error:', err);
+                        showEmptyState('Error selecting folder', err.message || 'Please try again.');
+                    }
+                } finally {
+                    selectFolderBtn.disabled = false;
+                    selectFolderBtn.innerHTML = '<i class="fas fa-folder"></i> Select Videos Folder';
+                }
+            }
+
+            // ─── RESET ───
+            function resetFolder() {
+                currentDirHandle = null;
+                allMovies = [];
+                searchQuery = '';
+                searchInput.value = '';
+                searchInput.classList.remove('active');
+                folderPathDisplay.textContent = 'No folder selected';
+                navBadge.textContent = '0';
+                showEmptyState(
+                    'No movies loaded',
+                    'Click <strong>"Select Videos Folder"</strong> to choose your local videos directory.'
+                );
+                // Reset hero
+                heroTitle.textContent = 'Your Videos';
+                heroDesc.textContent = 'Click the button below to select your videos folder.';
+                heroFolder.textContent = '—';
+                heroFile.textContent = '—';
+                heroQuality.textContent = '—';
+                heroPlayBtn.disabled = true;
+                heroBackdrop.style.backgroundImage = 'url(\'https://picsum.photos/seed/empty/1920/1080\')';
+            }
+
+            // ─── RENDER MOVIES ───
+            function renderMovies(movies, query = '') {
+                if (!movies || movies.length === 0) {
+                    showEmptyState(
+                        'No movies found',
+                        'Click <strong>"Select Videos Folder"</strong> to choose your local videos directory.'
+                    );
+                    return;
+                }
+
+                let filtered = movies;
+                if (query.trim() !== '') {
+                    const q = query.toLowerCase().trim();
+                    filtered = movies.filter(m =>
+                        m.folderName.toLowerCase().includes(q) ||
+                        m.videoFile.toLowerCase().includes(q)
+                    );
+                }
+
+                // Hero: first filtered or first overall
+                const featured = filtered.length > 0 ? filtered[0] : movies[0];
+                updateHero(featured);
+
+                let html = '';
+
+                // ── Search results row ──
+                if (query.trim() !== '') {
+                    html += `
+                        <div class="row search-results-row active">
+                            <div class="row-header">
+                                <div class="row-title">
+                                    <i class="fas fa-search"></i> Search Results
+                                    <span style="font-size:0.9rem;font-weight:400;color:#8a8a8a;margin-left:8px;">
+                                        (${filtered.length} found)
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="movie-scroll">
+                    `;
+                    if (filtered.length === 0) {
+                        html += `
+                            <div class="no-results">
+                                <i class="fas fa-film"></i>
+                                <p style="font-size:1.1rem;">No movies found matching "<strong>${query}</strong>"</p>
+                            </div>
+                        `;
+                    } else {
+                        filtered.forEach(m => { html += cardHTML(m); });
+                    }
+                    html += `</div></div>`;
+                }
+
+                const hidden = query.trim() !== '' ? 'hidden' : '';
+
+                // ── Trending (first 6) ──
+                const trending = movies.slice(0, 6);
+                if (trending.length) {
+                    html += `
+                        <div class="row ${hidden}">
+                            <div class="row-header">
+                                <div class="row-title"><i class="fas fa-fire"></i> Trending Now</div>
+                                <div class="row-view-all">View All <i class="fas fa-chevron-right"></i></div>
+                            </div>
+                            <div class="movie-scroll">
+                                ${trending.map(m => cardHTML(m)).join('')}
+                            </div>
+                        </div>
+                    `;
+                }
+
+                // ── Popular (next 6) ──
+                const popular = movies.slice(6, 12);
+                if (popular.length) {
+                    html += `
+                        <div class="row ${hidden}">
+                            <div class="row-header">
+                                <div class="row-title"><i class="fas fa-chart-line"></i> Popular on CineVault</div>
+                                <div class="row-view-all">View All <i class="fas fa-chevron-right"></i></div>
+                            </div>
+                            <div class="movie-scroll">
+                                ${popular.map(m => cardHTML(m)).join('')}
+                            </div>
+                        </div>
+                    `;
+                }
+
+                // ── Continue Watching (shuffle) ──
+                const shuffled = [...movies].sort(() => Math.random() - 0.5).slice(0, 6);
+                if (shuffled.length) {
+                    html += `
+                        <div class="row ${hidden}">
+                            <div class="row-header">
+                                <div class="row-title"><i class="fas fa-clock"></i> Continue Watching</div>
+                                <div class="row-view-all">View All <i class="fas fa-chevron-right"></i></div>
+                            </div>
+                            <div class="movie-scroll">
+                                ${shuffled.map(m => cardHTML(m)).join('')}
+                            </div>
+                        </div>
+                    `;
+                }
+
+                movieRows.innerHTML = html;
+
+                // ── Attach events ──
+                document.querySelectorAll('.movie-card').forEach(card => {
+                    const folderName = card.dataset.folder;
+                    const movie = movies.find(m => m.folderName === folderName);
+                    if (!movie) return;
+
+                    card.addEventListener('click', function(e) {
+                        if (e.target.closest('.play-btn')) return;
+                        updateHero(movie);
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                    });
+
+                    const playBtn = card.querySelector('.play-btn');
+                    if (playBtn) {
+                        playBtn.addEventListener('click', function(e) {
+                            e.stopPropagation();
+                            openVideoModal(movie);
+                        });
+                    }
+                });
+
+                // Hero play button
+                heroPlayBtn.onclick = function() {
+                    const f = filtered.length > 0 ? filtered[0] : movies[0];
+                    if (f) openVideoModal(f);
+                };
+            }
+
+            // ─── CARD HTML ───
+            function cardHTML(movie) {
+                const posterSeed = movie.posterSeed || movie.folderName.replace(/\s/g, '').toLowerCase() || 'movie';
+                const posterUrl = `https://picsum.photos/seed/${posterSeed}/400/225`;
+
+                return `
+                    <div class="movie-card" data-folder="${movie.folderName}">
+                        <div class="thumbnail">
+                            <img src="${posterUrl}" alt="${movie.folderName}" loading="lazy"
+                                 style="width:100%;height:100%;object-fit:cover;display:block;"
+                                 onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"
+                            />
+                            <div class="poster-fallback">
+                                <i class="fas fa-film"></i>
+                                <span>${movie.folderName}</span>
+                            </div>
+                            <div class="badge-top"><i class="fas fa-play-circle"></i> Local</div>
+                            <div class="card-hover">
+                                <button class="play-btn"><i class="fas fa-play"></i></button>
+                            </div>
+                        </div>
+                        <div class="card-info">
+                            <div class="title">${movie.folderName}</div>
+                            <div class="meta">
+                                <span><i class="fas fa-file-video"></i> ${movie.videoFile}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // ─── UPDATE HERO ───
+            function updateHero(movie) {
+                heroTitle.textContent = movie.folderName;
+                heroDesc.textContent = `📁 ${movie.path || movie.folderName}`;
+                heroFolder.textContent = movie.folderName;
+                heroFile.textContent = movie.videoFile;
+                heroQuality.textContent = 'Local File';
+                const seed = movie.posterSeed || movie.folderName.replace(/\s/g, '').toLowerCase() || 'movie';
+                heroBackdrop.style.backgroundImage =
+                    `url('https://picsum.photos/seed/${seed}/1920/1080')`;
+                heroPlayBtn.disabled = false;
+            }
+
+            // ─── OPEN VIDEO MODAL ───
+            async function openVideoModal(movie) {
+                try {
+                    // Read the file as a blob
+                    const file = await movie.videoHandle.getFile();
+                    const url = URL.createObjectURL(file);
+
+                    modalVideo.src = url;
+                    modalVideo.load();
+                    modalTitle.textContent = movie.folderName;
+                    modalFolder.textContent = movie.folderName;
+                    modalFile.textContent = movie.videoFile;
+                    modalQuality.textContent = 'Local File';
+
+                    videoModal.classList.add('active');
+                    document.body.style.overflow = 'hidden';
+                } catch (err) {
+                    console.error('Error playing video:', err);
+                    alert('Could not play this video.\nError: ' + err.message);
+                }
+            }
+
+            // ─── CLOSE VIDEO MODAL ───
+            function closeVideoModal() {
+                videoModal.classList.remove('active');
+                if (modalVideo.src) {
+                    modalVideo.pause();
+                    URL.revokeObjectURL(modalVideo.src);
+                    modalVideo.src = '';
+                    modalVideo.load();
+                }
+                document.body.style.overflow = '';
+            }
+
+            // ─── EMPTY STATE ───
+            function showEmptyState(title, message) {
+                movieRows.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-folder-open"></i>
+                        <p style="font-size:1.2rem;">${title}</p>
+                        <p class="hint">${message}</p>
+                        <button class="btn-select-folder" id="selectFolderBtnInline" style="margin-top:1.5rem;">
+                            <i class="fas fa-folder"></i> Select Videos Folder
+                        </button>
+                    </div>
+                `;
+                // Re-bind inline button
+                const inlineBtn = document.getElementById('selectFolderBtnInline');
+                if (inlineBtn) {
+                    inlineBtn.addEventListener('click', selectVideosFolder);
+                }
+                // Also update hero
+                heroTitle.textContent = 'No movies loaded';
+                heroDesc.textContent = 'Click the button to select your videos folder.';
+                heroFolder.textContent = '—';
+                heroFile.textContent = '—';
+                heroQuality.textContent = '—';
+                heroPlayBtn.disabled = true;
+                heroBackdrop.style.backgroundImage = 'url(\'https://picsum.photos/seed/empty/1920/1080\')';
+                navBadge.textContent = '0';
+            }
+
+            // ─── SEARCH ───
+            function handleSearch(query) {
+                searchQuery = query;
+                if (allMovies.length > 0) {
+                    renderMovies(allMovies, query);
+                }
+                const input = document.getElementById('searchInput');
+                const clearBtn = document.getElementById('searchClear');
+                if (query !== input.value) input.value = query;
+                clearBtn.classList.toggle('visible', query.length > 0);
+            }
+
+            // ─── NAVBAR SCROLL ───
+            function handleNavbar() {
+                const navbar = document.getElementById('navbar');
+                navbar.classList.toggle('scrolled', window.scrollY > 50);
+            }
+
+            // ─── INIT ───
+            function init() {
+                // ── Select folder button ──
+                selectFolderBtn.addEventListener('click', selectVideosFolder);
+
+                // ── Reset button ──
+                resetFolderBtn.addEventListener('click', resetFolder);
+
+                // ── Search ──
+                searchToggle.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    searchInput.classList.toggle('active');
+                    if (searchInput.classList.contains('active')) {
+                        searchInput.focus();
+                    } else {
+                        searchInput.classList.remove('active');
+                        handleSearch('');
+                    }
+                });
+
+                searchInput.addEventListener('input', function() {
+                    handleSearch(this.value);
+                });
+
+                searchClear.addEventListener('click', function() {
+                    handleSearch('');
+                    searchInput.classList.remove('active');
+                    searchInput.blur();
+                });
+
+                searchInput.addEventListener('keydown', function(e) {
+                    if (e.key === 'Escape') {
+                        handleSearch('');
+                        searchInput.classList.remove('active');
+                        searchInput.blur();
+                    }
+                });
+
+                document.addEventListener('click', function(e) {
+                    const container = document.querySelector('.search-container');
+                    if (container && !container.contains(e.target)) {
+                        if (searchInput.value === '') {
+                            searchInput.classList.remove('active');
+                        }
+                    }
+                });
+
+                // ── Modal close ──
+                modalClose.addEventListener('click', closeVideoModal);
+                videoModal.addEventListener('click', function(e) {
+                    if (e.target === this) closeVideoModal();
+                });
+                document.addEventListener('keydown', function(e) {
+                    if (e.key === 'Escape') closeVideoModal();
+                });
+
+                // ── Scroll ──
+                window.addEventListener('scroll', handleNavbar);
+
+                // ── Initial state ──
+                showEmptyState(
+                    'No movies loaded',
+                    'Click <strong>"Select Videos Folder"</strong> to choose your local videos directory.'
+                );
+
+                console.log('✅ CineVault ready – click "Select Videos Folder" to load your library.');
+            }
+
+            // ─── GO ───
+            document.addEventListener('DOMContentLoaded', init);
+
+        })();
+    </script>
+
+</body>
+</html>
